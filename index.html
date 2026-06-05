@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>JSCY 통합 재무관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#f7f5f0;--surface:#fff;--surface2:#f2efe8;--border:#e4e0d6;--border2:#ccc8be;
+  --text:#1a1814;--text2:#6b6660;--text3:#9e9890;
+  --accent:#2c4a3e;--accent2:#4a7c6b;--accent-light:#e8f0ed;
+  --red:#a33020;--red-light:#faeae7;--amber:#8a5c10;--amber-light:#fdf3e3;
+  --blue:#1a3d6b;--blue-light:#e8eef6;--rose:#7a3050;--rose-light:#f6ebf0;
+  --violet:#4a3a80;--violet-light:#eeecf8;
+  --serif:'Noto Serif KR',serif;--sans:'Noto Sans KR',sans-serif;
+  --radius:10px;--radius-sm:6px;
+  --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.08),0 12px 40px rgba(0,0,0,.06);
+}
+body.corp{--accent:#1a3d6b;--accent2:#3a6098;--accent-light:#e8eef6;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
+header{background:var(--accent);color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15);transition:background .25s;}
+.header-left{display:flex;align-items:center;gap:18px;}
+.header-title{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.01em;}
+.mode-toggle{display:flex;background:rgba(255,255,255,.14);border-radius:8px;padding:3px;}
+.mode-btn{border:none;background:transparent;color:rgba(255,255,255,.7);font-family:var(--sans);font-size:13px;font-weight:500;padding:5px 16px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.mode-btn.active{background:#fff;color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:14px;}
+.header-month{display:flex;align-items:center;gap:10px;}
+.month-btn{width:30px;height:30px;background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.month-btn:hover{background:rgba(255,255,255,.25);}
+.month-text{font-size:15px;font-weight:500;min-width:90px;text-align:center;}
+/* 동기화 상태 표시 */
+.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.7);padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.1);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#aaa;flex-shrink:0;transition:background .3s;}
+.sync-dot.ok{background:#4caf82;}
+.sync-dot.saving{background:#f9a825;animation:pulse .8s infinite;}
+.sync-dot.offline{background:#e53935;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.app{max-width:1100px;margin:0 auto;padding:24px 20px 60px;display:grid;grid-template-columns:240px 1fr;gap:20px;align-items:start;}
+.sidebar{position:sticky;top:80px;}
+.nav-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow);}
+.nav-item{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;color:var(--text2);font-size:13px;font-weight:400;border-bottom:1px solid var(--border);background:transparent;width:100%;text-align:left;}
+.nav-item:last-child{border-bottom:none;}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{border-left-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:500;}
+.nav-icon{font-size:16px;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;background:var(--surface2);color:var(--text3);white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;}
+.nav-item.active .nav-badge{background:var(--accent);color:#fff;}
+.sidebar-summary{margin-top:14px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px;box-shadow:var(--shadow);}
+.sidebar-summary-title{font-family:var(--serif);font-size:12px;color:var(--text3);letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;}
+.ss-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;}
+.ss-label{color:var(--text2);}.ss-val{font-weight:600;}
+.ss-divider{border:none;border-top:1px solid var(--border);margin:8px 0;}
+.ss-balance{font-family:var(--serif);font-size:18px;font-weight:700;}
+.progress-wrap{margin:6px 0 2px;}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.main{min-width:0;}
+.panel{display:none;animation:fadeIn .2s ease;}
+.panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.section-heading{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.section-desc{font-size:12px;color:var(--text3);margin-bottom:20px;}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px;}
+.card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.card-header-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.card-header-text{flex:1;}
+.card-header-title{font-size:13px;font-weight:600;color:var(--text);}
+.card-header-sub{font-size:11px;color:var(--text3);}
+.card-header-total{font-size:15px;font-weight:700;font-family:var(--serif);}
+.card-body{padding:4px 0;}
+.item-row{display:flex;align-items:center;gap:10px;padding:9px 20px;border-bottom:1px solid var(--border);transition:background .1s;}
+.item-row:last-child{border-bottom:none;}
+.item-row:hover{background:var(--surface2);}
+.item-name{flex:1;font-size:13px;color:var(--text2);background:transparent;border:1px solid transparent;border-radius:var(--radius-sm);padding:5px 8px;font-family:var(--sans);outline:none;transition:all .15s;min-width:0;}
+.item-name:hover{border-color:var(--border);}
+.item-name:focus{border-color:var(--accent2);background:var(--surface);box-shadow:0 0 0 3px rgba(58,96,152,.12);}
+.item-amount{width:150px;height:34px;padding:0 12px;font-size:13px;font-family:var(--sans);text-align:right;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);transition:all .15s;outline:none;}
+.item-amount:focus{border-color:var(--accent2);background:var(--surface);box-shadow:0 0 0 3px rgba(58,96,152,.12);}
+.item-unit{font-size:12px;color:var(--text3);width:14px;}
+.item-del{width:26px;height:26px;border:none;background:transparent;color:var(--text3);cursor:pointer;border-radius:6px;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.item-del:hover{background:var(--red-light);color:var(--red);}
+.add-row{padding:10px 20px;border-top:1px dashed var(--border2);}
+.add-btn{width:100%;padding:8px;border:1px dashed var(--border2);background:transparent;color:var(--text2);border-radius:var(--radius-sm);font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .15s;font-weight:500;}
+.add-btn:hover{background:var(--surface2);border-color:var(--accent2);color:var(--accent);}
+.subtotal-row{display:flex;justify-content:flex-end;align-items:center;gap:12px;padding:10px 20px;background:var(--surface2);border-top:1px solid var(--border);}
+.subtotal-label{font-size:12px;color:var(--text3);}
+.subtotal-val{font-size:14px;font-weight:700;font-family:var(--serif);}
+.metrics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+.metric-label{font-size:11px;color:var(--text3);letter-spacing:.03em;margin-bottom:6px;}
+.metric-val{font-size:22px;font-weight:700;font-family:var(--serif);line-height:1.2;margin-bottom:4px;}
+.metric-sub{font-size:10px;color:var(--text3);}
+.progress-wrap{margin:6px 0 2px;}
+.progress-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px;}
+.chart-title{font-family:var(--serif);font-size:14px;font-weight:600;margin-bottom:16px;color:var(--text);display:flex;align-items:center;justify-content:space-between;}
+.chart-layout{display:flex;align-items:center;gap:28px;}
+.donut-wrap{position:relative;width:180px;height:180px;flex-shrink:0;}
+.donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;}
+.donut-pct{font-size:22px;font-weight:700;font-family:var(--serif);color:var(--text);}
+.donut-sub{font-size:10px;color:var(--text3);}
+.legend{flex:1;display:flex;flex-direction:column;gap:8px;}
+.legend-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.legend-name{flex:1;color:var(--text2);}
+.legend-pct{font-weight:600;color:var(--text);}
+.legend-amt{color:var(--text3);font-size:11px;}
+.rate-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px;}
+.rate-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.rate-title{font-family:var(--serif);font-size:14px;font-weight:600;}
+.rate-pct{font-size:28px;font-weight:700;font-family:var(--serif);}
+.rate-bar-bg{height:10px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:8px;}
+.rate-bar-fill{height:100%;border-radius:5px;transition:width .5s cubic-bezier(.4,0,.2,1);}
+.rate-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);}
+.breakdown-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px;}
+.breakdown-row{display:flex;align-items:center;padding:11px 20px;border-bottom:1px solid var(--border);gap:10px;}
+.breakdown-row:last-child{border-bottom:none;}
+.breakdown-color{width:3px;height:28px;border-radius:2px;flex-shrink:0;}
+.breakdown-label{flex:1;font-size:13px;color:var(--text2);}
+.breakdown-amt{font-size:13px;font-weight:600;font-family:var(--serif);color:var(--text);}
+.breakdown-pct{font-size:11px;color:var(--text3);width:36px;text-align:right;}
+.action-bar{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:all .15s;border:1px solid var(--border2);background:var(--surface);color:var(--text2);}
+.btn:hover{background:var(--surface2);color:var(--text);}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:#234038;}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--accent);color:#fff;padding:10px 22px;border-radius:30px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:all .3s ease;z-index:999;box-shadow:var(--shadow-lg);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:var(--radius);padding:28px 32px;width:340px;box-shadow:var(--shadow-lg);}
+.modal-title{font-family:var(--serif);font-size:16px;font-weight:700;margin-bottom:8px;}
+.modal-desc{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;}
+.year-nav{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.year-nav .month-btn{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.year-nav .month-btn:hover{background:var(--border);}
+.year-text{font-family:var(--serif);font-size:16px;font-weight:700;min-width:80px;text-align:center;}
+.stat-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto;margin-bottom:16px;}
+table.stat-table{width:100%;border-collapse:collapse;font-size:12px;min-width:720px;}
+table.stat-table th,table.stat-table td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;}
+table.stat-table th{background:var(--surface2);color:var(--text3);font-weight:600;font-size:11px;position:sticky;top:0;}
+table.stat-table th:first-child,table.stat-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);}
+table.stat-table th:first-child{background:var(--surface2);z-index:2;}
+table.stat-table tr:hover td{background:var(--accent-light);}
+table.stat-table tr:hover td:first-child{background:var(--accent-light);}
+.stat-row-label{color:var(--text2);font-weight:500;}
+.stat-row-total td{font-weight:700;font-family:var(--serif);border-top:2px solid var(--border2);}
+.stat-cell-pos{color:var(--accent);}
+.stat-cell-neg{color:var(--red);}
+.stat-cell-muted{color:var(--text3);}
+.stat-yearcol{background:var(--accent-light) !important;font-weight:700;color:var(--accent) !important;}
+/* ── 세금 계산기 ── */
+.tc-row{display:flex;align-items:center;gap:10px;padding:9px 20px;border-bottom:1px solid var(--border);transition:background .1s;}
+.tc-row:last-child{border-bottom:none;}
+.tc-row:hover{background:var(--surface2);}
+.tc-label{flex:1;font-size:13px;color:var(--text2);}
+.tc-val{font-size:13px;font-weight:500;font-family:var(--serif);color:var(--text);text-align:right;}
+.tc-sub{font-size:11px;color:var(--text3);}
+.tc-input{width:150px;height:34px;padding:0 12px;font-size:13px;text-align:right;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);outline:none;transition:all .15s;font-family:var(--sans);flex-shrink:0;}
+.tc-input:focus{border-color:var(--accent2);background:var(--surface);box-shadow:0 0 0 3px rgba(58,96,152,.12);}
+.tc-hl{background:var(--surface2);}
+.tc-hl-accent{background:var(--accent-light);}
+.tc-notice{padding:10px 20px;font-size:11px;color:var(--amber);background:var(--amber-light);border-top:1px solid var(--border);}
+.bracket-bar{display:flex;height:34px;border-radius:6px;overflow:hidden;margin-bottom:6px;}
+.bracket-seg{display:flex;align-items:center;justify-content:center;transition:opacity .3s;}
+.bracket-seg span{font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);pointer-events:none;}
+.bracket-active-outline{outline:3px solid rgba(255,255,255,.9);outline-offset:-3px;}
+.bracket-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px;}
+.tax-summary-bar{padding:18px 20px;background:var(--accent);text-align:center;border-radius:0 0 var(--radius) var(--radius);}
+.tax-summary-main{font-family:var(--serif);font-size:28px;font-weight:700;color:#fff;}
+.tax-summary-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:3px;}
+/* 로딩 오버레이 */
+#loading-overlay{position:fixed;inset:0;background:var(--accent);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s;}
+#loading-overlay.hide{opacity:0;pointer-events:none;}
+.loading-title{font-family:var(--serif);font-size:22px;color:#fff;font-weight:700;margin-bottom:10px;}
+.loading-sub{font-size:13px;color:rgba(255,255,255,.7);}
+.loading-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;}
+  .header-title{display:none;}
+  .sidebar{position:static;}
+  .nav-card{display:flex;overflow-x:auto;}
+  .nav-item{flex-direction:column;gap:4px;padding:10px 10px;font-size:11px;border-left:none;border-bottom:3px solid transparent;border-right:1px solid var(--border);white-space:nowrap;}
+  .nav-item:last-child{border-right:none;}
+  .nav-item.active{border-left:none;border-bottom-color:var(--accent);}
+  .nav-badge{display:none;}
+  .sidebar-summary{display:none;}
+  .metrics-grid{grid-template-columns:repeat(2,1fr);}
+  .chart-layout{flex-direction:column;}
+  .item-amount{width:110px;}
+  .tc-input{width:110px;}
+  .sync-status span{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- 로딩 오버레이 -->
+<div id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-title">JSCY 재무관리</div>
+  <div class="loading-sub">데이터 불러오는 중…</div>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="header-title">📒 JSCY 재무관리</div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-family" onclick="switchBook('family')">🏡 가정</button>
+      <button class="mode-btn" id="mode-company" onclick="switchBook('company')">🏢 회사</button>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">연결 중…</span>
+    </div>
+    <div class="header-month">
+      <button class="month-btn" onclick="changeMonth(-1)">◀</button>
+      <span class="month-text" id="monthLabel"></span>
+      <button class="month-btn" onclick="changeMonth(1)">▶</button>
+    </div>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main" id="main"></main>
+</div>
+
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <div class="modal-title">이 달 데이터를 초기화할까요?</div>
+    <div class="modal-desc">현재 장부의 이번 달 항목·금액이 기본값으로 되돌아갑니다. 다른 달과 다른 장부는 유지됩니다.</div>
+    <div class="modal-btns">
+      <button class="btn" onclick="document.getElementById('resetModal').classList.remove('open')">취소</button>
+      <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);" onclick="resetMonth()">초기화</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBp4PETebvqQ-IOR_yjjiJhoaVpPanUBlQ",
+  authDomain: "jscy-finance.firebaseapp.com",
+  databaseURL: "https://jscy-finance-default-rtdb.firebaseio.com",
+  projectId: "jscy-finance",
+  storageBucket: "jscy-finance.firebasestorage.app",
+  messagingSenderId: "236473776912",
+  appId: "1:236473776912:web:f9367d80dd014cc76cc395",
+  measurementId: "G-J1GWW5WPNW"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* ════════════════════════════════════════
+   Firebase 동기화 레이어
+   ════════════════════════════════════════ */
+const SYNC = {
+  listeners: {},   // 현재 구독 중인 ref 해제 함수
+  saving: false,
+  saveTimer: null,
+
+  // DB 경로: /finance/{bookId}/{year}/{month}
+  path(bookId, y, m){ return `finance/${bookId}/${y}/${m}`; },
+
+  // 현재 월 실시간 구독 시작
+  subscribe(bookId, y, m, onData){
+    this.unsubscribeAll();
+    const key = this.path(bookId, y, m);
+    const dbRef = ref(db, key);
+    const unsub = onValue(dbRef, snap => {
+      setSyncStatus('ok', '실시간 연결');
+      if(snap.exists()) onData(snap.val());
+      else onData(null); // 데이터 없음 → 기본값 사용
+    }, err => {
+      setSyncStatus('offline', '연결 오류');
+      console.error(err);
+    });
+    this.listeners[key] = unsub;
+  },
+
+  unsubscribeAll(){
+    Object.values(this.listeners).forEach(fn => fn());
+    this.listeners = {};
+  },
+
+  // 저장 (300ms 디바운스)
+  save(bookId, y, m, data){
+    clearTimeout(this.saveTimer);
+    setSyncStatus('saving', '저장 중…');
+    this.saveTimer = setTimeout(() => {
+      const dbRef = ref(db, this.path(bookId, y, m));
+      set(dbRef, data)
+        .then(() => setSyncStatus('ok', '저장됨'))
+        .catch(() => setSyncStatus('offline', '저장 실패'));
+    }, 300);
+  },
+
+  // 특정 월 데이터 1회 읽기 (통계용)
+  async getOnce(bookId, y, m){
+    const snap = await get(ref(db, this.path(bookId, y, m)));
+    return snap.exists() ? snap.val() : null;
+  }
+};
+
+function setSyncStatus(state, label){
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  if(dot){ dot.className = 'sync-dot ' + state; }
+  if(lbl) lbl.textContent = label;
+}
+
+/* ════════════════════════════════════════
+   앱 전역에 SYNC 노출
+   ════════════════════════════════════════ */
+window.SYNC = SYNC;
+window.setSyncStatus = setSyncStatus;
+window.fbGetOnce = (bookId, y, m) => SYNC.getOnce(bookId, y, m);
+
+// Firebase 준비 완료 → 앱 시작
+window.firebaseReady = true;
+if(window._pendingInit) window._pendingInit();
+</script>
+
+<script>
+/* ════════════════════════════════════════
+   상수
+   ════════════════════════════════════════ */
+const MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+/* 2024년 종합소득세 세율표 */
+const TAX_BRACKETS=[
+  {max:14_000_000,  rate:.06, ded:0,          label:'6%',  color:'#5fa87d'},
+  {max:50_000_000,  rate:.15, ded:1_260_000,  label:'15%', color:'#4a8a6a'},
+  {max:88_000_000,  rate:.24, ded:5_760_000,  label:'24%', color:'#c49a30'},
+  {max:150_000_000, rate:.35, ded:15_440_000, label:'35%', color:'#cc6030'},
+  {max:300_000_000, rate:.38, ded:19_940_000, label:'38%', color:'#b03020'},
+  {max:500_000_000, rate:.40, ded:25_940_000, label:'40%', color:'#901820'},
+  {max:1_000_000_000,rate:.42,ded:35_940_000, label:'42%', color:'#700010'},
+  {max:Infinity,    rate:.45, ded:65_940_000, label:'45%', color:'#500000'},
+];
+
+/* ════════════════════════════════════════
+   장부 설정
+   ════════════════════════════════════════ */
+const BOOKS={
+  family:{
+    id:'family', netLabel:'잔액', donutCenterSub:'지출 / 수입',
+    rate:{num:'reserve',den:'in',goal:20,label:'📈 이번 달 저축률',yLabel:'저축률'},
+    panelOrder:['income','expense','savings'],
+    panels:{
+      income: {navIcon:'💰',navLabel:'수입', title:'수입 입력', desc:'항목을 자유롭게 추가·수정·삭제할 수 있어요.',cats:['income']},
+      expense:{navIcon:'💳',navLabel:'지출', title:'지출 입력', desc:'각 카테고리 안에서 항목을 추가·수정·삭제할 수 있어요.',cats:['tithe','living1','living2','allowance','irregular'],footerLabel:'총 지출 합계'},
+      savings:{navIcon:'🏦',navLabel:'저축', title:'저축 입력', desc:'저축 항목을 자유롭게 추가·수정·삭제할 수 있어요.',cats:['savings']},
+    },
+    cats:{
+      income:   {label:'수입',       icon:'💼',bg:'#e8f0ed',hex:'#2c4a3e',sub:'예비비통장 합산'},
+      tithe:    {label:'헌금',       icon:'🙏',bg:'#faeae7',hex:'#a33020'},
+      living1:  {label:'생활비 1',   icon:'🏠',bg:'#e8f0ed',hex:'#2c4a3e',sub:'대출이자·월세·관리비·통신비·보험'},
+      living2:  {label:'생활비 2',   icon:'🛒',bg:'#eeecf8',hex:'#4a3a80',sub:'유류비·교통비·식비·운동·기타'},
+      allowance:{label:'부부 용돈',  icon:'👫',bg:'#f6ebf0',hex:'#7a3050'},
+      irregular:{label:'비정기 지출',icon:'📅',bg:'#fdf3e3',hex:'#8a5c10',sub:'축의금·조의금·가족행사·병원비'},
+      savings:  {label:'저축',       icon:'🏦',bg:'#e8eef6',hex:'#1a3d6b'},
+    },
+    metrics:[
+      {id:'in',     label:'💰 총 수입',color:'var(--accent)',sub:'예비비통장',      sumCats:['income']},
+      {id:'out',    label:'💳 총 지출',color:'var(--red)',   sub:'전체 지출 합계',  sumCats:['tithe','living1','living2','allowance','irregular']},
+      {id:'reserve',label:'🏦 총 저축',color:'var(--blue)',  sub:'이번 달 저축',    sumCats:['savings']},
+      {id:'net',    label:'💵 잔액',   color:'dynamic',      sub:'수입−지출−저축',  base:'in',minus:['out','reserve']},
+    ],
+    sidebarRows:[
+      {label:'총 수입',ref:'in',  color:'var(--accent)'},
+      {label:'총 지출',ref:'out', color:'var(--red)'},
+      {label:'총 저축',ref:'reserve',color:'var(--blue)'},
+    ],
+    donutCats:['tithe','living1','living2','allowance','irregular'],
+    barSeries:[
+      {label:'수입',ref:'in', color:'#4a7c6b'},
+      {label:'지출',ref:'out',color:'#c2553f'},
+      {label:'저축',ref:'reserve',color:'#3a6098'},
+    ],
+    statRows:[
+      {ref:'in',       kind:'metric',label:'💰 수입',     cls:'pos'},
+      {ref:'tithe',    kind:'cat',   label:'　헌금',      cls:'muted'},
+      {ref:'living1',  kind:'cat',   label:'　생활비 1',  cls:'muted'},
+      {ref:'living2',  kind:'cat',   label:'　생활비 2',  cls:'muted'},
+      {ref:'allowance',kind:'cat',   label:'　부부 용돈', cls:'muted'},
+      {ref:'irregular',kind:'cat',   label:'　비정기',    cls:'muted'},
+      {ref:'out',      kind:'metric',label:'💳 지출 합계',cls:'neg'},
+      {ref:'reserve',  kind:'metric',label:'🏦 저축',     cls:''},
+      {ref:'net',      kind:'metric',label:'💵 잔액',     cls:'total'},
+    ],
+    defaults:()=>({
+      income:   [{n:'종석 급여',a:''},{n:'채영 급여',a:''}],
+      tithe:    [{n:'헌금',a:''}],
+      living1:  [{n:'대출 이자',a:''},{n:'월세',a:''},{n:'관리비',a:''},{n:'통신비',a:''},{n:'보험비',a:''}],
+      living2:  [{n:'유류비',a:''},{n:'교통비',a:''},{n:'식비',a:''},{n:'운동',a:''},{n:'기타',a:''}],
+      allowance:[{n:'종석 용돈',a:''},{n:'채영 용돈',a:''}],
+      irregular:[{n:'축의금',a:''},{n:'조의금',a:''},{n:'가족 행사',a:''},{n:'병원비',a:''}],
+      savings:  [{n:'정기 적금',a:''},{n:'비상금 적립',a:''},{n:'투자 (펀드 등)',a:''},{n:'기타 저축',a:''}],
+    }),
+  },
+  company:{
+    id:'company', netLabel:'순이익', donutCenterSub:'비용 / 매출',
+    rate:{num:'net',den:'in',goal:15,label:'📈 이번 달 순이익률',yLabel:'순이익률'},
+    panelOrder:['revenue','expense','taxcalc','tax'],
+    panels:{
+      revenue: {navIcon:'💰',navLabel:'매출',    title:'매출 입력', desc:'카드·현금·기타 매출을 항목별로 추가·수정·삭제할 수 있어요.',cats:['revenue']},
+      expense: {navIcon:'💳',navLabel:'비용',    title:'비용 입력', desc:'매입원가, 고정비, 인건비, 변동비를 항목별로 관리하세요.',cats:['cogs','fixed','payroll','variable'],footerLabel:'총 비용 합계'},
+      taxcalc: {navIcon:'🧮',navLabel:'세금계산', title:'세금 자동 계산', desc:'',type:'calculator',cats:[]},
+      tax:     {navIcon:'🧾',navLabel:'세금충당', title:'세금 충당 입력', desc:'계산기에서 권장액을 확인 후 「자동 적용」 버튼으로 채울 수 있어요.',cats:['tax']},
+    },
+    cats:{
+      revenue: {label:'매출',       icon:'💳',bg:'#e8eef6',hex:'#1a3d6b',sub:'카드·현금·기타 매출'},
+      cogs:    {label:'매입·원가',  icon:'📦',bg:'#fdf3e3',hex:'#8a5c10',sub:'식자재·상품 매입, 포장 자재'},
+      fixed:   {label:'고정비',     icon:'🏢',bg:'#e8eef6',hex:'#1a3d6b',sub:'임대료, 관리비, 공과금, 통신비, 보험'},
+      payroll: {label:'인건비',     icon:'👥',bg:'#f6ebf0',hex:'#7a3050',sub:'직원 급여, 4대보험, 대표자 급여'},
+      variable:{label:'기타 변동비',icon:'🔄',bg:'#eeecf8',hex:'#4a3a80',sub:'카드·배달 수수료, 마케팅, 소모품'},
+      tax:     {label:'세금 충당',  icon:'🏛️',bg:'#faeae7',hex:'#a33020',sub:'부가세·종합소득세 충당'},
+    },
+    metrics:[
+      {id:'in', label:'💰 총 매출', color:'var(--accent)',sub:'카드+현금+기타',     sumCats:['revenue']},
+      {id:'out',label:'💳 총 비용', color:'var(--red)',   sub:'매입+고정+인건+변동', sumCats:['cogs','fixed','payroll','variable']},
+      {id:'tax',label:'🧾 세금충당',color:'var(--amber)', sub:'부가세+소득세',       sumCats:['tax']},
+      {id:'net',label:'💵 순이익',  color:'dynamic',      sub:'매출−비용−세금',      base:'in',minus:['out','tax']},
+    ],
+    sidebarRows:[
+      {label:'총 매출',  ref:'in',  color:'var(--accent)'},
+      {label:'총 비용',  ref:'out', color:'var(--red)'},
+      {label:'세금 충당',ref:'tax', color:'var(--amber)'},
+    ],
+    donutCats:['cogs','fixed','payroll','variable','tax'],
+    barSeries:[
+      {label:'매출',  ref:'in', color:'#4a7c6b'},
+      {label:'비용',  ref:'out',color:'#c2553f'},
+      {label:'순이익',ref:'net',color:'#3a6098'},
+    ],
+    statRows:[
+      {ref:'in',      kind:'metric',label:'💰 매출',      cls:'pos'},
+      {ref:'cogs',    kind:'cat',   label:'　매입·원가',  cls:'muted'},
+      {ref:'fixed',   kind:'cat',   label:'　고정비',     cls:'muted'},
+      {ref:'payroll', kind:'cat',   label:'　인건비',     cls:'muted'},
+      {ref:'variable',kind:'cat',   label:'　기타 변동',  cls:'muted'},
+      {ref:'out',     kind:'metric',label:'💳 비용 합계', cls:'neg'},
+      {ref:'tax',     kind:'metric',label:'🧾 세금 충당', cls:'neg'},
+      {ref:'net',     kind:'metric',label:'💵 순이익',    cls:'total'},
+    ],
+    defaults:()=>({
+      revenue: [{n:'카드 매출',a:''},{n:'현금 매출',a:''},{n:'기타 수입',a:''}],
+      cogs:    [{n:'식자재/상품 매입',a:''},{n:'포장·소모 자재',a:''}],
+      fixed:   [{n:'임대료',a:''},{n:'관리비',a:''},{n:'공과금',a:''},{n:'통신비',a:''},{n:'보험료',a:''}],
+      payroll: [{n:'직원 급여',a:''},{n:'4대보험(사업주 부담)',a:''},{n:'대표자 급여',a:''}],
+      variable:[{n:'카드 수수료',a:''},{n:'배달 수수료',a:''},{n:'마케팅/광고',a:''},{n:'소모품',a:''},{n:'기타',a:''}],
+      tax:     [{n:'부가세 충당',a:''},{n:'소득세 충당(종소세+지방소득세)',a:''}],
+    }),
+  },
+};
+
+/* ════════════════════════════════════════
+   상태
+   ════════════════════════════════════════ */
+let bookId='family', book=BOOKS.family;
+let year=2026, month=5, statYear=2026;
+let data=book.defaults();
+let donutChart=null, yearBarChart=null, rateLineChart=null;
+let taxSettings={annualMethod:'projected',annualManual:'',deductPension:'',deductYellow:'',deductOther:'',creditOther:''};
+let _tcVatMonthly=0, _tcItMonthly=0;
+let _isRemoteUpdate=false; // Firebase에서 받은 업데이트인지 여부
+const sidebarEl=document.getElementById('sidebar');
+const mainEl=document.getElementById('main');
+
+/* ════════════════════════════════════════
+   유틸
+   ════════════════════════════════════════ */
+function fmt(n){return Math.round(n).toLocaleString('ko-KR')+'원';}
+function pct(a,b){return b>0?Math.round(a/b*100)+'%':'—';}
+function sumCat(arr){return(arr||[]).reduce((s,it)=>s+(parseFloat(it.a)||0),0);}
+function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
+function loadTaxSettings(){const r=localStorage.getItem('taxSettings_company');if(r){try{taxSettings=JSON.parse(r);}catch(e){}}}
+function saveTaxSettings(){localStorage.setItem('taxSettings_company',JSON.stringify(taxSettings));}
+
+function mergeDefaults(raw){
+  const d=book.defaults();
+  if(!raw)return d;
+  Object.keys(d).forEach(c=>{if(!Array.isArray(raw[c]))raw[c]=d[c];});
+  return raw;
+}
+
+function aggregate(d){
+  const cs={};Object.keys(book.cats).forEach(c=>cs[c]=sumCat(d[c]));
+  const m={};
+  book.metrics.forEach(mt=>{if(mt.sumCats)m[mt.id]=mt.sumCats.reduce((s,c)=>s+(cs[c]||0),0);});
+  book.metrics.forEach(mt=>{if(mt.base!==undefined)m[mt.id]=m[mt.base]-(mt.minus||[]).reduce((s,k)=>s+(m[k]||0),0);});
+  return{cs,m};
+}
+
+/* ════════════════════════════════════════
+   Firebase 저장/구독
+   ════════════════════════════════════════ */
+function save(){
+  if(window.SYNC) window.SYNC.save(bookId, year, month, data);
+}
+
+function subscribeCurrentMonth(){
+  if(!window.SYNC) return;
+  window.SYNC.subscribe(bookId, year, month, (rawData) => {
+    _isRemoteUpdate = true;
+    data = mergeDefaults(rawData);
+    renderAllLists();
+    recalc();
+    _isRemoteUpdate = false;
+  });
+}
+
+// 통계용: 특정 월 데이터 가져오기
+const _statCache = {};
+async function getMonthData(y, m){
+  const cacheKey = `${bookId}_${y}_${m}`;
+  if(y===year && m===month) return data;
+  if(_statCache[cacheKey] !== undefined) return _statCache[cacheKey];
+  const raw = window.fbGetOnce ? await window.fbGetOnce(bookId, y, m) : null;
+  _statCache[cacheKey] = raw ? mergeDefaults(raw) : null;
+  return _statCache[cacheKey];
+}
+
+function clearStatCache(){ Object.keys(_statCache).forEach(k=>delete _statCache[k]); }
+
+/* ════════════════════════════════════════
+   세금 계산
+   ════════════════════════════════════════ */
+function calcIncomeTax(base){
+  if(base<=0)return 0;
+  for(const b of TAX_BRACKETS)if(base<=b.max)return Math.max(0,Math.round(base*b.rate-b.ded));
+  return Math.max(0,Math.round(base*.45-65_940_000));
+}
+function getBracketIdx(base){
+  if(base<=0)return -1;
+  for(let i=0;i<TAX_BRACKETS.length;i++)if(base<=TAX_BRACKETS[i].max)return i;
+  return TAX_BRACKETS.length-1;
+}
+function getVatPeriod(mo){
+  if(mo<=2) return{label:'1기 예정 (1~3월)',months:[0,1,2],deadline:'4월 25일'};
+  if(mo<=5) return{label:'1기 확정 (4~6월)',months:[3,4,5],deadline:'7월 25일'};
+  if(mo<=8) return{label:'2기 예정 (7~9월)',months:[6,7,8],deadline:'10월 25일'};
+  return{label:'2기 확정 (10~12월)',months:[9,10,11],deadline:'다음해 1월 25일'};
+}
+async function getAccumVat(periodMonths){
+  let t=0;
+  for(const mo of periodMonths){
+    const d=(mo===month)?data:await getMonthData(year,mo);
+    if(!d)continue;
+    t+=Math.max(0,(sumCat(d.revenue||[])-sumCat(d.cogs||[]))*.1);
+  }
+  return Math.round(t);
+}
+
+/* ════════════════════════════════════════
+   세금 계산기 패널 HTML
+   ════════════════════════════════════════ */
+function buildTaxCalcHTML(){
+  return `<section id="panel-taxcalc" class="panel">
+  <div class="section-heading">🧮 세금 자동 계산</div>
+  <div class="section-desc">한국 세법(2024년 귀속 기준) · 개인사업자 · 일반과세자 VAT + 종합소득세 + 지방소득세</div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon" style="background:#e8eef6;">📊</div>
+      <div class="card-header-text"><div class="card-header-title">연간 소득 추정</div><div class="card-header-sub">종합소득세 계산의 기준</div></div>
+      <div class="card-header-total" id="tc-method-label" style="color:var(--blue);font-size:12px;">이번달×12</div>
+    </div>
+    <div class="card-body">
+      <div class="tc-row">
+        <span class="tc-label">추정 방법</span>
+        <select id="tc-method" onchange="onTaxChange()" style="height:34px;padding:0 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);font-family:var(--sans);font-size:12px;color:var(--text);outline:none;cursor:pointer;">
+          <option value="projected">이번달 × 12</option>
+          <option value="ytd">올해 평균 × 12 (YTD)</option>
+          <option value="manual">직접 입력</option>
+        </select>
+      </div>
+      <div class="tc-row" id="tc-manual-row" style="display:none;">
+        <label class="tc-label" for="tc-manual-val">연간 예상 순이익 직접 입력</label>
+        <input id="tc-manual-val" class="tc-input" type="number" min="0" placeholder="0" oninput="onTaxChange()" />
+        <span class="item-unit">원</span>
+      </div>
+      <div class="tc-row tc-hl"><span class="tc-label">이번달 순이익</span><span id="tc-cur-profit" class="tc-val">—</span></div>
+      <div class="tc-row tc-hl-accent"><span class="tc-label" style="font-weight:600;color:var(--accent);">연간 예상 순이익</span><span id="tc-annual-profit" class="tc-val" style="font-size:16px;color:var(--accent);">—</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon" style="background:#fdf3e3;">🧾</div>
+      <div class="card-header-text"><div class="card-header-title">부가세 (VAT)</div><div class="card-header-sub">일반과세자 · 매출세액 − 매입세액 공제</div></div>
+      <div class="card-header-total" id="tc-vat-hdr" style="color:var(--amber);">0원/월</div>
+    </div>
+    <div class="card-body">
+      <div class="tc-row"><span class="tc-label">이번달 매출세액 <span class="tc-sub">(매출 × 10%)</span></span><span id="tc-vat-sales" class="tc-val">0원</span></div>
+      <div class="tc-row"><span class="tc-label">매입세액 공제 <span class="tc-sub">(매입·원가 × 10%)</span></span><span id="tc-vat-purchase" class="tc-val" style="color:var(--accent);">−0원</span></div>
+      <div class="tc-row tc-hl" style="border-top:1px solid var(--border2);"><span class="tc-label" style="font-weight:600;">이번달 납부 예상 부가세</span><span id="tc-vat-due" class="tc-val" style="font-size:15px;color:var(--amber);">0원</span></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);background:var(--surface2);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px;">
+        <span style="font-weight:600;" id="tc-period-label">—</span>
+        <span style="color:var(--amber);font-weight:500;">기한: <span id="tc-period-deadline">—</span></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;">
+        <span style="color:var(--text3);">기간 누적 납부 예상</span>
+        <span style="font-weight:700;font-family:var(--serif);" id="tc-vat-accum">계산 중…</span>
+      </div>
+      <div class="tc-notice" style="padding:8px 0 0;border-top:none;background:transparent;">※ 매입세액 공제는 매입·원가만 반영합니다. 임대료·공과금 등은 세무사 확인 후 직접 조정하세요.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon" style="background:#eeecf8;">⬇️</div>
+      <div class="card-header-text"><div class="card-header-title">종합소득공제</div><div class="card-header-sub">과세표준을 낮추는 공제 항목</div></div>
+    </div>
+    <div class="card-body">
+      <div class="tc-row"><span class="tc-label">기본공제 (본인) <span class="tc-sub">고정</span></span><span class="tc-val">1,500,000원</span></div>
+      <div class="tc-row"><label class="tc-label" for="tc-pension">국민연금 보험료 <span class="tc-sub">연간</span></label><input id="tc-pension" class="tc-input" type="number" min="0" placeholder="0" oninput="onTaxChange()" /><span class="item-unit">원</span></div>
+      <div class="tc-row"><label class="tc-label" for="tc-yellow">노란우산공제 <span class="tc-sub">연간, 최대 500만원</span></label><input id="tc-yellow" class="tc-input" type="number" min="0" placeholder="0" oninput="onTaxChange()" /><span class="item-unit">원</span></div>
+      <div class="tc-row"><label class="tc-label" for="tc-deduct-other">기타 소득공제 <span class="tc-sub">기부금·신용카드 등</span></label><input id="tc-deduct-other" class="tc-input" type="number" min="0" placeholder="0" oninput="onTaxChange()" /><span class="item-unit">원</span></div>
+    </div>
+    <div class="subtotal-row"><span class="subtotal-label">합계 소득공제</span><span class="subtotal-val" id="tc-total-deduct" style="color:var(--accent);">1,500,000원</span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon" style="background:#e8f0ed;">💳</div>
+      <div class="card-header-text"><div class="card-header-title">세액공제</div><div class="card-header-sub">산출세액에서 직접 차감</div></div>
+    </div>
+    <div class="card-body">
+      <div class="tc-row"><span class="tc-label">표준세액공제 <span class="tc-sub">사업자 기본</span></span><span class="tc-val">70,000원</span></div>
+      <div class="tc-row"><label class="tc-label" for="tc-credit-other">기타 세액공제 <span class="tc-sub">자녀·연금계좌 등</span></label><input id="tc-credit-other" class="tc-input" type="number" min="0" placeholder="0" oninput="onTaxChange()" /><span class="item-unit">원</span></div>
+    </div>
+    <div class="subtotal-row"><span class="subtotal-label">합계 세액공제</span><span class="subtotal-val" id="tc-total-credit" style="color:var(--accent);">70,000원</span></div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon" style="background:#faeae7;">🏛️</div>
+      <div class="card-header-text"><div class="card-header-title">종합소득세 계산 결과</div><div class="card-header-sub">2024년 귀속 세율 · 사업소득 단일</div></div>
+      <div class="card-header-total" id="tc-it-hdr" style="color:var(--red);">0원</div>
+    </div>
+    <div class="card-body">
+      <div class="tc-row"><span class="tc-label">연간 예상 사업소득</span><span id="tc-r-income" class="tc-val">0원</span></div>
+      <div class="tc-row"><span class="tc-label">(−) 종합소득공제</span><span id="tc-r-deduct" class="tc-val" style="color:var(--accent);">−0원</span></div>
+      <div class="tc-row tc-hl"><span class="tc-label" style="font-weight:600;">과세표준</span><span id="tc-r-taxbase" class="tc-val" style="font-weight:700;">0원</span></div>
+      <div style="padding:16px 20px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;">세율 구간 (2024년 기준 · 최대 3억 표시)</div>
+        <div class="bracket-bar" id="tc-bracket-bar"></div>
+        <div class="bracket-labels"><span>0</span><span>1,400만</span><span>5,000만</span><span>8,800만</span><span>1.5억</span><span>3억+</span></div>
+        <div id="tc-bracket-desc" style="font-size:12px;color:var(--text2);margin-top:8px;"></div>
+      </div>
+      <div class="tc-row"><span class="tc-label">산출세액</span><span id="tc-r-calctax" class="tc-val">0원</span></div>
+      <div class="tc-row"><span class="tc-label">(−) 세액공제 합계</span><span id="tc-r-credit" class="tc-val" style="color:var(--accent);">−0원</span></div>
+      <div class="tc-row tc-hl"><span class="tc-label" style="font-weight:600;">결정세액 (종합소득세)</span><span id="tc-r-income-tax" class="tc-val" style="font-weight:700;color:var(--red);">0원</span></div>
+      <div class="tc-row"><span class="tc-label">지방소득세 <span class="tc-sub">(종합소득세 × 10%)</span></span><span id="tc-r-local-tax" class="tc-val" style="color:var(--red);">0원</span></div>
+    </div>
+    <div class="subtotal-row" style="justify-content:space-between;">
+      <div><div class="subtotal-label">합계 세액 (연간)</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">종합소득세 + 지방소득세</div></div>
+      <span class="subtotal-val" id="tc-r-total" style="color:var(--red);font-size:18px;">0원</span>
+    </div>
+    <div class="tc-notice">📌 납부 일정 · 5월 종합소득세 확정신고 / 11월 중간예납 (전년 결정세액의 50%)</div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon" style="background:#e8f0ed;">💡</div>
+      <div class="card-header-text"><div class="card-header-title">이번달 세금 충당 권장액</div><div class="card-header-sub">매달 별도 통장에 적립하면 납부 부담이 줄어요</div></div>
+    </div>
+    <div class="card-body">
+      <div class="tc-row"><span class="tc-label">부가세 월 충당 <span class="tc-sub">이번달 납부 예상</span></span><span id="tc-m-vat" class="tc-val" style="color:var(--amber);">0원</span></div>
+      <div class="tc-row"><span class="tc-label">종합소득세+지방소득세 월 충당 <span class="tc-sub">연간÷12</span></span><span id="tc-m-it" class="tc-val" style="color:var(--red);">0원</span></div>
+    </div>
+    <div class="tax-summary-bar">
+      <div style="font-size:12px;color:rgba(255,255,255,.8);margin-bottom:4px;">이번달 총 세금 충당 권장액</div>
+      <div class="tax-summary-main" id="tc-m-total">0원</div>
+      <div class="tax-summary-sub" id="tc-m-pct">매출 대비 0%</div>
+    </div>
+  </div>
+  <div class="action-bar">
+    <button class="btn btn-primary" onclick="applyTaxToProvision()">🧾 세금 충당 탭에 자동 적용 →</button>
+    <button class="btn" onclick="gotoPanel('tax')">세금 충당 탭으로 →</button>
+  </div>
+</section>`;
+}
+
+async function updateTaxCalc(){
+  if(bookId!=='company')return;
+  const me=document.getElementById('tc-method');
+  if(!me)return;
+  me.value=taxSettings.annualMethod||'projected';
+  const setVal=(id,v)=>{const el=document.getElementById(id);if(el&&v)el.value=v;};
+  setVal('tc-manual-val',taxSettings.annualManual);
+  setVal('tc-pension',taxSettings.deductPension);
+  setVal('tc-yellow',taxSettings.deductYellow);
+  setVal('tc-deduct-other',taxSettings.deductOther);
+  setVal('tc-credit-other',taxSettings.creditOther);
+  const mr=document.getElementById('tc-manual-row');
+  if(mr)mr.style.display=me.value==='manual'?'flex':'none';
+
+  const {m}=aggregate(data);
+  setText('tc-cur-profit',fmt(m.net));
+
+  let annualProfit=0, methodLabel='이번달×12';
+  const method=me.value;
+  if(method==='projected'){
+    annualProfit=m.net*12;
+  }else if(method==='ytd'){
+    let total=0,cnt=0;
+    for(let mo=0;mo<=month;mo++){
+      const d=(mo===month)?data:await getMonthData(year,mo);
+      if(d){const{m:mm}=aggregate(d);if(mm.in||mm.out){total+=mm.net;cnt++;}}
+    }
+    annualProfit=cnt>0?total/cnt*12:0; methodLabel='YTD 평균×12';
+  }else{
+    annualProfit=parseFloat(taxSettings.annualManual)||0; methodLabel='직접 입력';
+  }
+  setText('tc-annual-profit',fmt(annualProfit));
+  setText('tc-method-label',methodLabel);
+
+  const rev=sumCat(data.revenue||[]);
+  const cogs=sumCat(data.cogs||[]);
+  const vatSales=Math.round(rev*.1);
+  const vatPurchase=Math.round(cogs*.1);
+  const vatDue=Math.max(0,vatSales-vatPurchase);
+  setText('tc-vat-sales',fmt(vatSales));
+  setText('tc-vat-purchase','−'+fmt(vatPurchase));
+  setText('tc-vat-due',fmt(vatDue));
+  setText('tc-vat-hdr',fmt(vatDue)+'/월');
+  const period=getVatPeriod(month);
+  setText('tc-period-label','▣ 신고 기간: '+period.label);
+  setText('tc-period-deadline',period.deadline);
+  getAccumVat(period.months).then(v=>setText('tc-vat-accum',fmt(v)));
+
+  const pension=parseFloat(taxSettings.deductPension)||0;
+  const yellow=Math.min(parseFloat(taxSettings.deductYellow)||0,5_000_000);
+  const deductOther=parseFloat(taxSettings.deductOther)||0;
+  const totalDeduct=1_500_000+pension+yellow+deductOther;
+  setText('tc-total-deduct',fmt(totalDeduct));
+
+  const creditOther=parseFloat(taxSettings.creditOther)||0;
+  const totalCredit=70_000+creditOther;
+  setText('tc-total-credit',fmt(totalCredit));
+
+  const taxBase=Math.max(0,annualProfit-totalDeduct);
+  const calcTax=calcIncomeTax(taxBase);
+  const finalTax=Math.max(0,calcTax-totalCredit);
+  const localTax=Math.round(finalTax*.1);
+  const totalAnnualTax=finalTax+localTax;
+
+  setText('tc-r-income',fmt(annualProfit));
+  setText('tc-r-deduct','−'+fmt(totalDeduct));
+  setText('tc-r-taxbase',fmt(taxBase));
+  setText('tc-r-calctax',fmt(calcTax));
+  setText('tc-r-credit','−'+fmt(totalCredit));
+  setText('tc-r-income-tax',fmt(finalTax));
+  setText('tc-r-local-tax',fmt(localTax));
+  setText('tc-r-total',fmt(totalAnnualTax));
+  setText('tc-it-hdr',fmt(totalAnnualTax));
+
+  renderBracketBar(taxBase);
+
+  _tcVatMonthly=vatDue;
+  _tcItMonthly=Math.round(totalAnnualTax/12);
+  const totalMonthly=_tcVatMonthly+_tcItMonthly;
+  setText('tc-m-vat',fmt(_tcVatMonthly));
+  setText('tc-m-it',fmt(_tcItMonthly));
+  setText('tc-m-total',fmt(totalMonthly));
+  const revPct=rev>0?Math.round(totalMonthly/rev*100):0;
+  setText('tc-m-pct','매출 대비 '+revPct+'%');
+  setText('nb-taxcalc',fmt(totalMonthly));
+}
+
+function renderBracketBar(taxBase){
+  const bar=document.getElementById('tc-bracket-bar');
+  const desc=document.getElementById('tc-bracket-desc');
+  if(!bar)return;
+  const segs=[
+    {min:0,          max:14_000_000,  label:'6%', color:'#5fa87d'},
+    {min:14_000_000, max:50_000_000,  label:'15%',color:'#4a8a6a'},
+    {min:50_000_000, max:88_000_000,  label:'24%',color:'#c49a30'},
+    {min:88_000_000, max:150_000_000, label:'35%',color:'#cc6030'},
+    {min:150_000_000,max:300_000_000, label:'38%+',color:'#b03020'},
+  ];
+  const scaleMax=300_000_000;
+  let html='';
+  segs.forEach(s=>{
+    const w=((Math.min(s.max,scaleMax)-s.min)/scaleMax*100).toFixed(2);
+    const active=taxBase>s.min&&taxBase<=s.max;
+    const filled=taxBase>s.max;
+    const op=taxBase<=0?'.25':filled?'1':active?'1':'.3';
+    const cls=active?'bracket-seg bracket-active-outline':'bracket-seg';
+    html+=`<div class="${cls}" style="width:${w}%;background:${s.color};opacity:${op};" title="${s.label}"><span>${parseFloat(w)>4?s.label:''}</span></div>`;
+  });
+  bar.innerHTML=html;
+  if(desc){
+    const idx=getBracketIdx(taxBase);
+    if(taxBase<=0){desc.innerHTML='<span style="color:var(--text3)">순이익이 없어 과세되지 않습니다.</span>';}
+    else{const b=TAX_BRACKETS[idx];const sc=segs[Math.min(idx,4)];
+      desc.innerHTML=`적용 세율: <strong style="color:${sc?.color||'#b03020'}">${b.label}</strong> 구간 &nbsp;|&nbsp; 산출세액 = 과세표준 × ${b.label} − 누진공제 ${fmt(b.ded)}`;}
+  }
+}
+
+function onTaxChange(){
+  const me=document.getElementById('tc-method');if(!me)return;
+  taxSettings.annualMethod=me.value;
+  taxSettings.annualManual=document.getElementById('tc-manual-val')?.value||'';
+  taxSettings.deductPension=document.getElementById('tc-pension')?.value||'';
+  taxSettings.deductYellow=document.getElementById('tc-yellow')?.value||'';
+  taxSettings.deductOther=document.getElementById('tc-deduct-other')?.value||'';
+  taxSettings.creditOther=document.getElementById('tc-credit-other')?.value||'';
+  const mr=document.getElementById('tc-manual-row');
+  if(mr)mr.style.display=me.value==='manual'?'flex':'none';
+  saveTaxSettings();updateTaxCalc();
+}
+
+function applyTaxToProvision(){
+  let vi=data.tax.findIndex(it=>it.n.includes('부가세'));
+  if(vi<0){data.tax.unshift({n:'부가세 충당',a:''});vi=0;}
+  data.tax[vi].a=String(Math.round(_tcVatMonthly));
+  let ii=data.tax.findIndex(it=>it.n.includes('소득세'));
+  if(ii<0){data.tax.push({n:'소득세 충당(종소세+지방소득세)',a:''});ii=data.tax.length-1;}
+  data.tax[ii].a=String(Math.round(_tcItMonthly));
+  save();renderList('tax');recalc();
+  toast('세금 충당 탭에 적용되었습니다 ✓');
+  setTimeout(()=>gotoPanel('tax'),700);
+}
+
+/* ════════════════════════════════════════
+   UI 빌드
+   ════════════════════════════════════════ */
+function metricCardsHTML(prefix){
+  return book.metrics.map(mt=>`<div class="metric-card">
+    <div class="metric-label">${mt.label}</div>
+    <div class="metric-val" id="${prefix}-${mt.id}" style="color:${mt.color==='dynamic'?'var(--text)':mt.color}">0원</div>
+    <div class="metric-sub" id="${prefix}sub-${mt.id}">${mt.sub}</div></div>`).join('');
+}
+function catCardHTML(c){
+  const cat=book.cats[c];
+  return`<div class="card">
+    <div class="card-header"><div class="card-header-icon" style="background:${cat.bg};">${cat.icon}</div>
+      <div class="card-header-text"><div class="card-header-title">${cat.label}</div>${cat.sub?`<div class="card-header-sub">${cat.sub}</div>`:''}</div>
+      <div class="card-header-total" id="h-${c}" style="color:${cat.hex}">0원</div></div>
+    <div class="card-body" id="list-${c}"></div>
+    <div class="add-row"><button class="add-btn" onclick="addItem('${c}')">＋ 항목 추가</button></div>
+    <div class="subtotal-row"><span class="subtotal-label">${cat.label} 소계</span><span class="subtotal-val" id="sub-${c}" style="color:${cat.hex}">0원</span></div>
+  </div>`;
+}
+function buildUI(){
+  const ssRows=book.sidebarRows.map(r=>`<div class="ss-row"><span class="ss-label">${r.label}</span><span class="ss-val" id="ss-${r.ref}" style="color:${r.color}">—</span></div>`).join('');
+  sidebarEl.innerHTML=`<nav class="nav-card" id="navCard"></nav>
+    <div class="sidebar-summary">
+      <div class="sidebar-summary-title">이번 달 현황</div>${ssRows}
+      <hr class="ss-divider"/>
+      <div class="ss-row"><span class="ss-label" style="font-weight:600;">${book.netLabel}</span><span class="ss-balance" id="ss-net">—</span></div>
+      <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" id="ss-bar" style="width:0%;background:var(--amber)"></div></div></div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px;" id="ss-bar-label">${book.rate.yLabel} 0%</div>
+    </div>`;
+  const navItems=book.panelOrder.map(k=>{
+    const p=book.panels[k];
+    const badge=p.type==='calculator'?'🧮':`<span id="nb-${k}">0</span>`;
+    return`<button class="nav-item" data-panel="${k}" onclick="switchPanel('${k}',this)"><span class="nav-icon">${p.navIcon}</span><span>${p.navLabel}</span><span class="nav-badge">${badge}</span></button>`;
+  }).join('');
+  document.getElementById('navCard').innerHTML=navItems+
+    `<button class="nav-item" data-panel="summary" onclick="switchPanel('summary',this)"><span class="nav-icon">📊</span><span>월 요약</span><span class="nav-badge">→</span></button>
+     <button class="nav-item" data-panel="stats" onclick="switchPanel('stats',this)"><span class="nav-icon">📈</span><span>연간 통계</span><span class="nav-badge">→</span></button>`;
+  let html='';
+  book.panelOrder.forEach((k,i)=>{
+    const p=book.panels[k];
+    if(p.type==='calculator'){
+      html+=buildTaxCalcHTML();
+    }else{
+      const cards=p.cats.map(catCardHTML).join('');
+      const footer=p.cats.length>1?`<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">
+        <div style="background:var(--red-light);border:1px solid #f0c0b8;border-radius:var(--radius);padding:12px 20px;display:flex;gap:20px;align-items:center;">
+        <span style="font-size:13px;color:var(--red);">${p.footerLabel}</span>
+        <span id="total-panel-${k}" style="font-size:22px;font-weight:700;font-family:var(--serif);color:var(--red);">0원</span></div></div>`:'';
+      const next=book.panelOrder[i+1]||'summary';
+      html+=`<section id="panel-${k}" class="panel">
+        <div class="section-heading">${p.title}</div>
+        <div class="section-desc">${p.desc}</div>
+        ${cards}${footer}
+        <div class="action-bar"><button class="btn" onclick="gotoPanel('${next}')">다음 →</button></div>
+      </section>`;
+    }
+  });
+  html+=`<section id="panel-summary" class="panel">
+    <div class="section-heading">이번 달 요약</div>
+    <div class="section-desc">전체 현황을 한눈에 확인하세요.</div>
+    <div class="metrics-grid">${metricCardsHTML('m')}</div>
+    <div class="rate-card">
+      <div class="rate-header"><span class="rate-title">${book.rate.label}</span><span class="rate-pct" id="rate-pct" style="color:var(--accent)">0%</span></div>
+      <div class="rate-bar-bg"><div class="rate-bar-fill" id="rate-bar" style="width:0%;background:var(--accent)"></div></div>
+      <div class="rate-labels"><span>0%</span><span id="rate-goal-label" style="font-weight:600;color:var(--text3)">목표 ${book.rate.goal}%</span><span>100%</span></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">항목별 비율</div>
+      <div class="chart-layout">
+        <div class="donut-wrap"><canvas id="donut" width="180" height="180"></canvas>
+          <div class="donut-center"><span class="donut-pct" id="donut-pct">—</span><span class="donut-sub">${book.donutCenterSub}</span></div></div>
+        <div class="legend" id="donut-legend"></div>
+      </div>
+    </div>
+    <div class="breakdown-card" id="breakdown-list"></div>
+    <div class="action-bar">
+      <button class="btn" onclick="exportCSV()">📥 이 달 CSV</button>
+      <button class="btn" onclick="document.getElementById('resetModal').classList.add('open')">🗑 이 달 초기화</button>
+    </div>
+  </section>`;
+  html+=`<section id="panel-stats" class="panel">
+    <div class="section-heading">연간 통계</div>
+    <div class="section-desc">선택 연도의 모든 달을 한 번에 비교하세요.</div>
+    <div class="year-nav">
+      <button class="month-btn" onclick="changeStatYear(-1)">◀</button>
+      <span class="year-text" id="statYearLabel"></span>
+      <button class="month-btn" onclick="changeStatYear(1)">▶</button>
+    </div>
+    <div class="metrics-grid">${metricCardsHTML('y')}</div>
+    <div class="chart-card"><div class="chart-title">월별 추이</div><div style="position:relative;width:100%;height:280px;"><canvas id="yearBar"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">월별 ${book.rate.yLabel} 추이</div><div style="position:relative;width:100%;height:220px;"><canvas id="rateLine"></canvas></div></div>
+    <div class="chart-title" style="margin:24px 0 12px;">월별 상세 내역표</div>
+    <div class="stat-table-wrap"><table class="stat-table" id="statTable"></table></div>
+    <div class="action-bar"><button class="btn" onclick="exportYearCSV()">📥 연간 CSV</button></div>
+  </section>`;
+  mainEl.innerHTML=html;
+}
+
+/* ════════════════════════════════════════
+   항목 CRUD
+   ════════════════════════════════════════ */
+function renderList(cat){
+  const wrap=document.getElementById('list-'+cat);if(!wrap)return;wrap.innerHTML='';
+  (data[cat]||[]).forEach((it,idx)=>{
+    const row=document.createElement('div');row.className='item-row';
+    row.innerHTML=`<input class="item-name" type="text" value="${escHtml(it.n)}" placeholder="항목 이름" oninput="editName('${cat}',${idx},this.value)"/>
+      <input class="item-amount" type="number" min="0" value="${it.a}" placeholder="0" oninput="editAmount('${cat}',${idx},this.value)"/>
+      <span class="item-unit">원</span>
+      <button class="item-del" onclick="delItem('${cat}',${idx})" title="삭제">✕</button>`;
+    wrap.appendChild(row);
+  });
+}
+function editName(cat,idx,val){data[cat][idx].n=val;save();}
+function editAmount(cat,idx,val){data[cat][idx].a=val;save();recalc();}
+function addItem(cat){data[cat].push({n:'',a:''});save();renderList(cat);recalc();
+  const inputs=document.getElementById('list-'+cat).querySelectorAll('.item-name');if(inputs.length)inputs[inputs.length-1].focus();}
+function delItem(cat,idx){data[cat].splice(idx,1);save();renderList(cat);recalc();}
+function renderAllLists(){Object.keys(book.cats).forEach(renderList);}
+
+/* ════════════════════════════════════════
+   계산/렌더
+   ════════════════════════════════════════ */
+function recalc(){
+  const{cs,m}=aggregate(data);
+  Object.keys(book.cats).forEach(c=>{setText('h-'+c,fmt(cs[c]));setText('sub-'+c,fmt(cs[c]));});
+  book.panelOrder.forEach(k=>{
+    const p=book.panels[k];
+    if(p.type!=='calculator'){
+      if(p.cats.length>1)setText('total-panel-'+k,fmt(p.cats.reduce((s,c)=>s+cs[c],0)));
+      setText('nb-'+k,fmt(p.cats.reduce((s,c)=>s+cs[c],0)));
+    }
+  });
+  book.metrics.forEach(mt=>{const el=document.getElementById('m-'+mt.id);
+    if(el){el.textContent=fmt(m[mt.id]);if(mt.color==='dynamic')el.style.color=m[mt.id]>=0?'var(--accent)':'var(--red)';}});
+  const rate=m[book.rate.den]>0?Math.round(m[book.rate.num]/m[book.rate.den]*100):0;
+  setText('rate-pct',rate+'%');
+  const bar=document.getElementById('rate-bar');
+  if(bar){bar.style.width=Math.max(0,Math.min(rate,100))+'%';
+    bar.style.background=rate<0?'var(--red)':rate>=book.rate.goal?'var(--accent)':rate>=book.rate.goal/2?'var(--blue)':'var(--amber)';}
+  const gl=document.getElementById('rate-goal-label');
+  if(gl){if(rate<0){gl.textContent='⚠️ 손실';gl.style.color='var(--red)';}
+    else if(rate>=book.rate.goal){gl.textContent='🎉 목표 달성!';gl.style.color='var(--accent)';}
+    else{gl.textContent='목표 '+book.rate.goal+'%';gl.style.color='var(--text3)';}}
+  setText('donut-pct',m.in>0?Math.round(m.out/m.in*100)+'%':'—');
+  const bd=document.getElementById('breakdown-list');
+  if(bd){
+    const total=book.donutCats.reduce((s,c)=>s+cs[c],0);
+    let h=`<div class="breakdown-row" style="background:var(--surface2);"><div style="flex:1;font-size:12px;font-weight:600;color:var(--text3);">항목</div><div style="font-size:12px;font-weight:600;color:var(--text3);">금액</div><div style="width:36px;text-align:right;font-size:12px;font-weight:600;color:var(--text3);">비율</div></div>`;
+    book.donutCats.forEach(c=>{h+=`<div class="breakdown-row"><div class="breakdown-color" style="background:${book.cats[c].hex}"></div><div class="breakdown-label">${book.cats[c].label}</div><div class="breakdown-amt">${fmt(cs[c])}</div><div class="breakdown-pct">${pct(cs[c],total)}</div></div>`;});
+    h+=`<div class="breakdown-row" style="background:var(--surface2);"><div class="breakdown-color" style="background:transparent"></div><div class="breakdown-label" style="font-weight:600;">합계</div><div class="breakdown-amt" style="color:var(--red)">${fmt(total)}</div><div class="breakdown-pct" style="color:var(--text2)">${pct(total,m.in)}</div></div>`;
+    bd.innerHTML=h;
+  }
+  book.sidebarRows.forEach(r=>setText('ss-'+r.ref,m[r.ref]>0?fmt(m[r.ref]):'—'));
+  const ssn=document.getElementById('ss-net');
+  if(ssn){ssn.textContent=m.in>0?fmt(m.net):'—';ssn.style.color=m.net>=0?'var(--accent)':'var(--red)';}
+  const ssbar=document.getElementById('ss-bar');
+  if(ssbar){ssbar.style.width=Math.max(0,Math.min(rate,100))+'%';
+    ssbar.style.background=rate<0?'var(--red)':rate>=book.rate.goal?'var(--accent)':rate>=book.rate.goal/2?'var(--blue)':'var(--amber)';}
+  setText('ss-bar-label',book.rate.yLabel+' '+rate+'%');
+  if(document.getElementById('panel-summary')?.classList.contains('active'))renderDonut(cs);
+  if(bookId==='company')updateTaxCalc();
+}
+
+function renderDonut(cs){
+  const vals=book.donutCats.map(c=>cs[c]);
+  const labels=book.donutCats.map(c=>book.cats[c].label);
+  const colors=book.donutCats.map(c=>book.cats[c].hex);
+  const total=vals.reduce((a,b)=>a+b,0);
+  const legend=document.getElementById('donut-legend');legend.innerHTML='';
+  labels.forEach((lbl,i)=>{const p=total>0?Math.round(vals[i]/total*100):0
