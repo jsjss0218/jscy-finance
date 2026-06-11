@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>JSCY 통합 재무관리</title>
+<title>JSCY Finance Console</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
 :root{
   --bg:#fbfbfa;--surface:#fff;--surface2:#f7f7f5;--border:#e9e9e7;--border2:#dcdcd9;
@@ -227,6 +228,864 @@ table.stat-table tr:hover td:first-child{background:var(--accent-light);}
   .month-text{min-width:0;font-size:13px;white-space:nowrap;}
   .month-btn{width:26px;height:26px;font-size:14px;flex-shrink:0;}
 }
+
+:root{
+  --bg:#f4f7f8;
+  --surface:#ffffff;
+  --surface2:#f7fafb;
+  --border:#dbe3e8;
+  --border2:#c9d4dc;
+  --text:#17212b;
+  --text2:#566372;
+  --text3:#8a96a3;
+  --accent:#0f766e;
+  --accent2:#0b5f59;
+  --accent-light:#e6f4f1;
+  --red:#c2413b;
+  --red-light:#fff0ed;
+  --amber:#b7791f;
+  --amber-light:#fff7e8;
+  --blue:#315f9c;
+  --blue-light:#eaf1fb;
+  --rose:#a33a62;
+  --rose-light:#fbedf3;
+  --violet:#5f55a4;
+  --violet-light:#efeffa;
+  --radius:8px;
+  --radius-sm:6px;
+  --shadow:0 1px 2px rgba(23,33,43,.05),0 1px 10px rgba(23,33,43,.03);
+  --shadow-lg:0 18px 42px rgba(23,33,43,.16);
+}
+
+body.corp{
+  --accent:#315f9c;
+  --accent2:#244d82;
+  --accent-light:#eaf1fb;
+}
+
+body{
+  background:linear-gradient(180deg,#f7fafb 0,#eef4f6 100%);
+  color:var(--text);
+  font-size:14px;
+}
+
+header{
+  height:72px;
+  padding:0 28px;
+  background:rgba(255,255,255,.92);
+  border-bottom:1px solid rgba(201,212,220,.9);
+  box-shadow:0 10px 30px rgba(23,33,43,.06);
+  backdrop-filter:saturate(160%) blur(18px);
+}
+
+.header-left{gap:24px;}
+.header-right{gap:18px;}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:214px;
+}
+
+.brand-mark{
+  width:38px;
+  height:38px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,var(--accent2),#17212b);
+  color:#fff;
+  font-size:16px;
+  font-weight:800;
+  box-shadow:0 10px 22px rgba(15,118,110,.22);
+}
+
+.brand-copy{line-height:1.2;}
+.header-title{
+  display:block;
+  font-family:var(--sans);
+  font-size:15px;
+  font-weight:750;
+  letter-spacing:0;
+  color:var(--text);
+}
+
+.header-subtitle{
+  margin-top:3px;
+  font-size:11px;
+  font-weight:500;
+  color:var(--text3);
+}
+
+.mode-toggle{
+  height:38px;
+  align-items:center;
+  gap:2px;
+  padding:3px;
+  background:#edf3f5;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+
+.mode-btn{
+  height:30px;
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:0 14px;
+  border-radius:6px;
+  color:var(--text2);
+  font-size:13px;
+  font-weight:650;
+}
+
+.mode-btn svg{
+  width:15px;
+  height:15px;
+  stroke-width:2;
+}
+
+button:focus{
+  outline:none;
+}
+
+button:focus-visible{
+  outline:3px solid rgba(15,118,110,.18);
+  outline-offset:2px;
+}
+
+.mode-btn.active{
+  color:var(--accent2);
+  background:#fff;
+  box-shadow:0 1px 2px rgba(23,33,43,.09);
+}
+
+.sync-status{
+  height:32px;
+  padding:0 12px;
+  background:#f7fafb;
+  color:var(--text2);
+  border-color:var(--border);
+  border-radius:999px;
+  font-size:12px;
+  font-weight:650;
+}
+
+.sync-dot{width:8px;height:8px;}
+.sync-dot.ok{background:#1f9d74;}
+.sync-dot.saving{background:#c78412;}
+.sync-dot.offline{background:var(--red);}
+
+.header-month{
+  height:38px;
+  gap:6px;
+  padding:3px;
+  background:#edf3f5;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+
+.month-btn{
+  width:30px;
+  height:30px;
+  background:#fff;
+  color:var(--text2);
+  border:1px solid transparent;
+  border-radius:6px;
+}
+
+.month-btn svg{width:16px;height:16px;}
+.month-btn:hover{
+  background:var(--accent-light);
+  color:var(--accent2);
+  border-color:#b9dcd7;
+}
+
+.month-text{
+  min-width:104px;
+  color:var(--text);
+  font-size:14px;
+  font-weight:750;
+}
+
+.app{
+  max-width:1280px;
+  grid-template-columns:268px minmax(0,1fr);
+  gap:24px;
+  padding:28px 28px 72px;
+}
+
+.sidebar{top:96px;}
+.nav-card,.sidebar-summary,.card,.metric-card,.chart-card,.rate-card,.breakdown-card,.stat-table-wrap{
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  background:var(--surface);
+  box-shadow:var(--shadow);
+}
+
+.nav-card{
+  padding:8px;
+  overflow:hidden;
+}
+
+.nav-item{
+  min-height:42px;
+  gap:11px;
+  padding:10px 12px;
+  border:0;
+  border-radius:6px;
+  color:var(--text2);
+  font-size:13px;
+  font-weight:650;
+  background:transparent;
+}
+
+.nav-item+.nav-item{margin-top:3px;}
+.nav-item:hover{
+  background:#f4f8f9;
+  color:var(--text);
+}
+
+.nav-item.active{
+  background:var(--accent-light);
+  color:var(--accent2);
+  border-left:0;
+}
+
+.nav-icon{
+  width:18px;
+  height:18px;
+  flex:0 0 18px;
+  color:currentColor;
+  stroke-width:2;
+}
+
+.nav-badge{
+  max-width:92px;
+  padding:3px 7px;
+  background:#eef3f5;
+  color:var(--text3);
+  border-radius:999px;
+  font-size:10px;
+  font-weight:750;
+}
+
+.nav-item.active .nav-badge{
+  background:#fff;
+  color:var(--accent2);
+}
+
+.sidebar-summary{
+  margin-top:14px;
+  padding:18px;
+}
+
+.sidebar-summary-title{
+  font-family:var(--sans);
+  letter-spacing:.08em;
+  color:var(--text3);
+  font-weight:800;
+}
+
+.ss-row{padding:6px 0;font-size:13px;}
+.ss-label{color:var(--text2);}
+.ss-val{font-weight:750;}
+.ss-balance{
+  font-family:var(--sans);
+  font-size:20px;
+  font-weight:800;
+}
+
+.main{
+  padding-bottom:32px;
+}
+
+.panel.active{
+  animation:fadeIn .18s ease;
+}
+
+.section-heading{
+  font-family:var(--sans);
+  margin:2px 0 6px;
+  font-size:24px;
+  line-height:1.25;
+  font-weight:820;
+  letter-spacing:0;
+}
+
+.section-desc{
+  margin-bottom:22px;
+  color:var(--text2);
+  font-size:13px;
+}
+
+.card{margin-bottom:18px;overflow:hidden;}
+.card-header{
+  min-height:70px;
+  padding:16px 20px;
+  background:linear-gradient(180deg,#fff 0,#fbfdfe 100%);
+}
+
+.card-header-icon{
+  width:36px;
+  height:36px;
+  border-radius:8px;
+  color:var(--accent2);
+}
+
+.card-header-icon svg{
+  width:18px;
+  height:18px;
+  stroke-width:2;
+}
+
+.card-header-title{
+  color:var(--text);
+  font-size:14px;
+  font-weight:800;
+}
+
+.card-header-sub{
+  margin-top:2px;
+  color:var(--text3);
+  font-size:12px;
+}
+
+.card-header-total{
+  font-family:var(--sans);
+  font-size:16px;
+  font-weight:850;
+}
+
+.item-row,.tc-row{
+  min-height:52px;
+  padding:9px 20px;
+  gap:10px;
+  border-bottom:1px solid #edf2f5;
+}
+
+.item-row:hover,.tc-row:hover{
+  background:#f8fbfc;
+}
+
+.item-name,.item-amount,.item-add,.tc-input{
+  height:36px;
+  border-color:#d8e1e6;
+  background:#f8fbfc;
+  color:var(--text);
+  border-radius:6px;
+}
+
+.item-name{
+  color:var(--text);
+  font-weight:550;
+}
+
+.item-name:hover,.item-amount:hover,.item-add:hover,.tc-input:hover{
+  border-color:#bfccd4;
+}
+
+.item-name:focus,.item-amount:focus,.item-add:focus,.tc-input:focus{
+  border-color:var(--accent);
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(15,118,110,.12);
+}
+
+.item-add{
+  color:var(--accent2);
+  background:var(--accent-light);
+  border-color:#cde4e0;
+}
+
+.item-add-btn,.btn{
+  min-height:36px;
+  border-radius:6px;
+  font-size:13px;
+  font-weight:750;
+}
+
+.item-add-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  background:var(--accent);
+  border-color:var(--accent);
+}
+
+.item-add-btn svg{
+  width:14px;
+  height:14px;
+}
+
+.item-add-btn:hover,.btn-primary:hover{
+  background:var(--accent2) !important;
+  border-color:var(--accent2) !important;
+}
+
+.item-del{
+  width:30px;
+  height:30px;
+  border-radius:6px;
+}
+
+.item-add-icon{
+  width:15px;
+  height:15px;
+  color:var(--text3);
+  flex-shrink:0;
+}
+
+.item-del svg{
+  width:15px;
+  height:15px;
+}
+
+.add-row{padding:12px 20px;}
+.add-btn{
+  height:38px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border-color:#cbd7de;
+  background:#fbfdfe;
+  color:var(--text2);
+  border-radius:6px;
+  font-weight:750;
+}
+
+.add-btn:hover{
+  background:var(--accent-light);
+  border-color:#9fd0c9;
+  color:var(--accent2);
+}
+
+.add-btn svg{
+  width:15px;
+  height:15px;
+}
+
+.subtotal-row{
+  padding:12px 20px;
+  background:#f7fafb;
+}
+
+.subtotal-val{
+  font-family:var(--sans);
+  font-weight:850;
+}
+
+.metrics-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.metric-card{
+  min-height:116px;
+  padding:18px;
+  position:relative;
+  overflow:hidden;
+}
+
+.metric-card::before{
+  content:'';
+  position:absolute;
+  inset:0 0 auto 0;
+  height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--blue),var(--amber));
+  opacity:.9;
+}
+
+.metric-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.metric-icon{
+  width:30px;
+  height:30px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#f3f7f8;
+  color:var(--text3);
+}
+
+.metric-icon svg{
+  width:16px;
+  height:16px;
+}
+
+.metric-label{
+  margin-bottom:9px;
+  color:var(--text2);
+  font-size:12px;
+  font-weight:750;
+  letter-spacing:0;
+}
+
+.metric-val{
+  font-family:var(--sans);
+  font-size:24px;
+  font-weight:850;
+  letter-spacing:0;
+}
+
+.metric-sub{
+  margin-top:5px;
+  color:var(--text3);
+  font-size:11px;
+}
+
+.rate-card,.chart-card{
+  padding:20px;
+}
+
+.rate-title,.chart-title{
+  font-family:var(--sans);
+  color:var(--text);
+  font-size:15px;
+  font-weight:800;
+}
+
+.rate-pct{
+  font-family:var(--sans);
+  font-size:28px;
+  font-weight:850;
+}
+
+.rate-bar-bg,.progress-bar{
+  background:#e5edf1;
+}
+
+.rate-bar-bg{
+  height:12px;
+  border-radius:999px;
+}
+
+.rate-bar-fill,.progress-fill{
+  border-radius:999px;
+}
+
+.chart-layout{
+  align-items:center;
+  gap:32px;
+}
+
+.donut-wrap{
+  width:196px;
+  height:196px;
+}
+
+.donut-wrap canvas{
+  width:196px !important;
+  height:196px !important;
+}
+
+.donut-pct{
+  font-family:var(--sans);
+  font-size:24px;
+  font-weight:850;
+}
+
+.legend-row{
+  min-height:32px;
+  gap:10px;
+  padding:6px 0;
+  border-bottom:1px solid #eef3f5;
+}
+
+.legend-row:last-child{border-bottom:0;}
+.legend-dot{width:10px;height:10px;border-radius:3px;}
+.legend-name{color:var(--text2);font-weight:650;}
+.legend-pct{font-weight:800;}
+
+.breakdown-row{
+  min-height:44px;
+  padding:11px 20px;
+  border-color:#edf2f5;
+}
+
+.breakdown-color{
+  width:4px;
+  height:26px;
+}
+
+.breakdown-label{font-weight:650;color:var(--text2);}
+.breakdown-amt{
+  font-family:var(--sans);
+  font-weight:800;
+}
+
+.btn{
+  padding:8px 14px;
+  background:#fff;
+  border-color:#cbd7de;
+  color:var(--text2);
+}
+
+.btn svg{
+  width:16px;
+  height:16px;
+  stroke-width:2;
+}
+
+.btn:hover{
+  background:#f4f8f9;
+  border-color:#afbec8;
+  color:var(--text);
+}
+
+.btn-primary{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#fff;
+}
+
+.modal-overlay{
+  background:rgba(23,33,43,.44);
+  backdrop-filter:blur(8px);
+}
+
+.modal{
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+
+.modal-title{
+  font-family:var(--sans);
+  font-weight:850;
+}
+
+.toast{
+  border-radius:999px;
+  background:#17212b;
+  box-shadow:var(--shadow-lg);
+}
+
+.year-nav{
+  display:inline-flex;
+  padding:3px;
+  background:#edf3f5;
+  border:1px solid var(--border);
+  border-radius:8px;
+}
+
+.year-text{
+  font-family:var(--sans);
+  font-size:15px;
+  font-weight:800;
+}
+
+table.stat-table th{
+  background:#f4f8f9;
+  color:var(--text2);
+}
+
+table.stat-table th,table.stat-table td{
+  padding:10px 12px;
+  border-color:#edf2f5;
+}
+
+table.stat-table tr:hover td,
+table.stat-table tr:hover td:first-child{
+  background:var(--accent-light);
+}
+
+.stat-yearcol{
+  background:var(--accent-light) !important;
+  color:var(--accent2) !important;
+}
+
+.tc-label{font-weight:650;color:var(--text2);}
+.tc-val{
+  font-family:var(--sans);
+  font-weight:800;
+}
+
+.tc-hl{background:#f7fafb;}
+.tc-hl-accent{background:var(--accent-light);}
+
+.tc-notice{
+  color:#8a5f18;
+  background:var(--amber-light);
+}
+
+.bracket-bar{
+  height:36px;
+  border-radius:8px;
+}
+
+.tax-summary-bar{
+  background:linear-gradient(135deg,var(--accent2),#17212b);
+}
+
+.tax-summary-main{
+  font-family:var(--sans);
+  font-weight:850;
+}
+
+#loading-overlay{
+  background:linear-gradient(135deg,var(--accent2),#17212b);
+}
+
+.loading-title{
+  font-family:var(--sans);
+  font-weight:850;
+  letter-spacing:0;
+}
+
+.loading-sub{
+  color:rgba(255,255,255,.74);
+}
+
+@media(max-width:980px){
+  .metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .app{grid-template-columns:220px minmax(0,1fr);gap:18px;padding:22px 18px 56px;}
+  .brand{min-width:auto;}
+  .header-left{gap:14px;}
+}
+
+@media(max-width:768px){
+  header{
+    height:auto;
+    min-height:64px;
+    padding:10px 12px;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  .header-left,.header-right{
+    width:100%;
+    justify-content:space-between;
+  }
+
+  .header-left{
+    align-items:center;
+  }
+
+  .header-right{
+    margin-top:8px;
+  }
+
+  .brand{
+    min-width:0;
+    gap:9px;
+  }
+
+  .brand-mark{
+    width:34px;
+    height:34px;
+  }
+
+  .header-title{
+    display:block;
+    font-size:14px;
+  }
+
+  .header-subtitle{display:none;}
+  .mode-toggle{height:36px;}
+  .mode-btn{height:28px;padding:0 10px;font-size:12px;}
+  .mode-btn svg{width:14px;height:14px;}
+  .sync-status{height:32px;}
+  .header-month{height:36px;}
+  .month-btn{width:28px;height:28px;}
+  .month-text{min-width:94px;font-size:13px;}
+
+  .app{
+    grid-template-columns:1fr;
+    gap:14px;
+    padding:18px 12px 48px;
+  }
+
+  .sidebar{position:static;}
+  .nav-card{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding:6px;
+  }
+
+  .nav-item{
+    min-width:86px;
+    min-height:58px;
+    flex-direction:column;
+    gap:5px;
+    padding:8px 10px;
+    border:0;
+    white-space:nowrap;
+  }
+
+  .nav-item+.nav-item{margin-top:0;}
+  .nav-badge{display:none;}
+  .sidebar-summary{display:none;}
+  .section-heading{font-size:21px;}
+  .metrics-grid{grid-template-columns:1fr 1fr;gap:10px;}
+  .metric-card{min-height:104px;padding:15px;}
+  .metric-val{font-size:20px;}
+  .chart-layout{gap:18px;}
+  .donut-wrap,.donut-wrap canvas{width:178px !important;height:178px !important;}
+  .item-row{padding:12px 14px;gap:7px 8px;}
+  .item-name,.item-amount,.item-add,.tc-input{font-size:16px;}
+  .item-add-btn{min-width:72px;}
+  .sidebar,.main,.panel,.nav-card,.card,.action-bar{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+  }
+  .item-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+  }
+  .item-name{
+    grid-column:1 / -1;
+    width:100%;
+  }
+  .item-amount{
+    grid-column:1 / 2;
+    width:100%;
+    min-width:0;
+  }
+  .item-unit{
+    grid-column:2 / 3;
+    width:auto;
+  }
+  .item-add-icon{
+    display:none;
+  }
+  .item-add{
+    grid-column:1 / 2;
+    width:100%;
+    min-width:0;
+  }
+  .item-add-btn{
+    grid-column:2 / 3;
+    width:auto;
+  }
+  .item-del{
+    grid-column:2 / 3;
+    justify-self:end;
+  }
+}
+
+@media(max-width:420px){
+  .brand-copy{display:none;}
+  .mode-btn{padding:0 9px;}
+  .mode-btn svg{display:block;}
+  .header-right{justify-content:flex-end;}
+  .sync-status{display:none;}
+  .metrics-grid{grid-template-columns:1fr;}
+  .chart-card,.rate-card{padding:16px;}
+}
 </style>
 </head>
 <body>
@@ -234,16 +1093,22 @@ table.stat-table tr:hover td:first-child{background:var(--accent-light);}
 <!-- 로딩 오버레이 -->
 <div id="loading-overlay">
   <div class="loading-spinner"></div>
-  <div class="loading-title">JSCY 재무관리</div>
-  <div class="loading-sub">데이터 불러오는 중…</div>
+  <div class="loading-title">JSCY Finance</div>
+  <div class="loading-sub">재무 데이터를 동기화하고 있습니다</div>
 </div>
 
 <header>
   <div class="header-left">
-    <div class="header-title">📒 JSCY 재무관리</div>
+    <div class="brand">
+      <div class="brand-mark">J</div>
+      <div class="brand-copy">
+        <div class="header-title">JSCY Finance</div>
+        <div class="header-subtitle">Family & Business Ledger</div>
+      </div>
+    </div>
     <div class="mode-toggle">
-      <button class="mode-btn active" id="mode-family" onclick="switchBook('family')">🏡 가정</button>
-      <button class="mode-btn" id="mode-company" onclick="switchBook('company')">🏢 회사</button>
+      <button class="mode-btn active" id="mode-family" onclick="switchBook('family')"><i data-lucide="home"></i>가정</button>
+      <button class="mode-btn" id="mode-company" onclick="switchBook('company')"><i data-lucide="building-2"></i>회사</button>
     </div>
   </div>
   <div class="header-right">
@@ -252,9 +1117,9 @@ table.stat-table tr:hover td:first-child{background:var(--accent-light);}
       <span id="sync-label">연결 중…</span>
     </div>
     <div class="header-month">
-      <button class="month-btn" onclick="changeMonth(-1)">◀</button>
+      <button class="month-btn" onclick="changeMonth(-1)" title="이전 달"><i data-lucide="chevron-left"></i></button>
       <span class="month-text" id="monthLabel"></span>
-      <button class="month-btn" onclick="changeMonth(1)">▶</button>
+      <button class="month-btn" onclick="changeMonth(1)" title="다음 달"><i data-lucide="chevron-right"></i></button>
     </div>
   </div>
 </header>
@@ -269,8 +1134,8 @@ table.stat-table tr:hover td:first-child{background:var(--accent-light);}
     <div class="modal-title">이 달 데이터를 초기화할까요?</div>
     <div class="modal-desc">현재 장부의 이번 달 항목·금액이 기본값으로 되돌아갑니다. 다른 달과 다른 장부는 유지됩니다.</div>
     <div class="modal-btns">
-      <button class="btn" onclick="document.getElementById('resetModal').classList.remove('open')">취소</button>
-      <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);" onclick="resetMonth()">초기화</button>
+      <button class="btn" onclick="document.getElementById('resetModal').classList.remove('open')"><i data-lucide="x"></i>취소</button>
+      <button class="btn" style="background:var(--red);color:#fff;border-color:var(--red);" onclick="resetMonth()"><i data-lucide="rotate-ccw"></i>초기화</button>
     </div>
   </div>
 </div>
@@ -403,27 +1268,27 @@ const TAX_BRACKETS=[
 const BOOKS={
   family:{
     id:'family', netLabel:'잔액', donutCenterSub:'지출 / 수입',
-    rate:{num:'reserve',den:'in',goal:20,label:'📈 이번 달 저축률',yLabel:'저축률'},
+    rate:{num:'reserve',den:'in',goal:20,label:'이번 달 저축률',yLabel:'저축률'},
     panelOrder:['income','expense','savings'],
     panels:{
-      income: {navIcon:'💰',navLabel:'수입', title:'수입 입력', desc:'항목을 자유롭게 추가·수정·삭제할 수 있어요.',cats:['income']},
-      expense:{navIcon:'💳',navLabel:'지출', title:'지출 입력', desc:'각 카테고리 안에서 항목을 추가·수정·삭제할 수 있어요.',cats:['tithe','living1','living2','allowance','irregular'],footerLabel:'총 지출 합계'},
-      savings:{navIcon:'🏦',navLabel:'저축', title:'저축 입력', desc:'저축 항목을 자유롭게 추가·수정·삭제할 수 있어요.',cats:['savings']},
+      income: {navIcon:'wallet',navLabel:'수입', title:'수입 입력', desc:'항목을 자유롭게 추가·수정·삭제할 수 있어요.',cats:['income']},
+      expense:{navIcon:'credit-card',navLabel:'지출', title:'지출 입력', desc:'각 카테고리 안에서 항목을 추가·수정·삭제할 수 있어요.',cats:['tithe','living1','living2','allowance','irregular'],footerLabel:'총 지출 합계'},
+      savings:{navIcon:'landmark',navLabel:'저축', title:'저축 입력', desc:'저축 항목을 자유롭게 추가·수정·삭제할 수 있어요.',cats:['savings']},
     },
     cats:{
-      income:   {label:'수입',       icon:'💼',bg:'#e8f0ed',hex:'#2c4a3e',sub:'예비비통장 합산'},
-      tithe:    {label:'헌금',       icon:'🙏',bg:'#faeae7',hex:'#a33020'},
-      living1:  {label:'생활비 1',   icon:'🏠',bg:'#e8f0ed',hex:'#2c4a3e',sub:'대출이자·월세·관리비·통신비·보험'},
-      living2:  {label:'생활비 2',   icon:'🛒',bg:'#eeecf8',hex:'#4a3a80',sub:'유류비·교통비·식비·운동·기타'},
-      allowance:{label:'부부 용돈',  icon:'👫',bg:'#f6ebf0',hex:'#7a3050'},
-      irregular:{label:'비정기 지출',icon:'📅',bg:'#fdf3e3',hex:'#8a5c10',sub:'축의금·조의금·가족행사·병원비'},
-      savings:  {label:'저축',       icon:'🏦',bg:'#e8eef6',hex:'#1a3d6b'},
+      income:   {label:'수입',       icon:'briefcase-business',bg:'#e6f4f1',hex:'#0f766e',sub:'예비비통장 합산'},
+      tithe:    {label:'헌금',       icon:'heart-handshake',bg:'#fff0ed',hex:'#c2413b'},
+      living1:  {label:'생활비 1',   icon:'home',bg:'#e6f4f1',hex:'#0f766e',sub:'대출이자·월세·관리비·통신비·보험'},
+      living2:  {label:'생활비 2',   icon:'shopping-basket',bg:'#efeffa',hex:'#5f55a4',sub:'유류비·교통비·식비·운동·기타'},
+      allowance:{label:'부부 용돈',  icon:'users',bg:'#fbedf3',hex:'#a33a62'},
+      irregular:{label:'비정기 지출',icon:'calendar-days',bg:'#fff7e8',hex:'#b7791f',sub:'축의금·조의금·가족행사·병원비'},
+      savings:  {label:'저축',       icon:'piggy-bank',bg:'#eaf1fb',hex:'#315f9c'},
     },
     metrics:[
-      {id:'in',     label:'💰 총 수입',color:'var(--accent)',sub:'예비비통장',      sumCats:['income']},
-      {id:'out',    label:'💳 총 지출',color:'var(--red)',   sub:'전체 지출 합계',  sumCats:['tithe','living1','living2','allowance','irregular']},
-      {id:'reserve',label:'🏦 총 저축',color:'var(--blue)',  sub:'이번 달 저축',    sumCats:['savings']},
-      {id:'net',    label:'💵 잔액',   color:'dynamic',      sub:'수입−지출−저축',  base:'in',minus:['out','reserve']},
+      {id:'in',     label:'총 수입',color:'var(--accent)',sub:'예비비통장',      sumCats:['income']},
+      {id:'out',    label:'총 지출',color:'var(--red)',   sub:'전체 지출 합계',  sumCats:['tithe','living1','living2','allowance','irregular']},
+      {id:'reserve',label:'총 저축',color:'var(--blue)',  sub:'이번 달 저축',    sumCats:['savings']},
+      {id:'net',    label:'잔액',   color:'dynamic',      sub:'수입−지출−저축',  base:'in',minus:['out','reserve']},
     ],
     sidebarRows:[
       {label:'총 수입',ref:'in',  color:'var(--accent)'},
@@ -437,15 +1302,15 @@ const BOOKS={
       {label:'저축',ref:'reserve',color:'#3a6098'},
     ],
     statRows:[
-      {ref:'in',       kind:'metric',label:'💰 수입',     cls:'pos'},
+      {ref:'in',       kind:'metric',label:'수입',        cls:'pos'},
       {ref:'tithe',    kind:'cat',   label:'　헌금',      cls:'muted'},
       {ref:'living1',  kind:'cat',   label:'　생활비 1',  cls:'muted'},
       {ref:'living2',  kind:'cat',   label:'　생활비 2',  cls:'muted'},
       {ref:'allowance',kind:'cat',   label:'　부부 용돈', cls:'muted'},
       {ref:'irregular',kind:'cat',   label:'　비정기',    cls:'muted'},
-      {ref:'out',      kind:'metric',label:'💳 지출 합계',cls:'neg'},
-      {ref:'reserve',  kind:'metric',label:'🏦 저축',     cls:''},
-      {ref:'net',      kind:'metric',label:'💵 잔액',     cls:'total'},
+      {ref:'out',      kind:'metric',label:'지출 합계',   cls:'neg'},
+      {ref:'reserve',  kind:'metric',label:'저축',        cls:''},
+      {ref:'net',      kind:'metric',label:'잔액',        cls:'total'},
     ],
     defaults:()=>({
       income:   [{n:'종석 급여',a:''},{n:'채영 급여',a:''}],
@@ -459,27 +1324,27 @@ const BOOKS={
   },
   company:{
     id:'company', netLabel:'순이익', donutCenterSub:'비용 / 매출',
-    rate:{num:'net',den:'in',goal:15,label:'📈 이번 달 순이익률',yLabel:'순이익률'},
+    rate:{num:'net',den:'in',goal:15,label:'이번 달 순이익률',yLabel:'순이익률'},
     panelOrder:['revenue','expense','taxcalc','tax'],
     panels:{
-      revenue: {navIcon:'💰',navLabel:'매출',    title:'매출 입력', desc:'카드·현금·기타 매출을 항목별로 추가·수정·삭제할 수 있어요.',cats:['revenue']},
-      expense: {navIcon:'💳',navLabel:'비용',    title:'비용 입력', desc:'매입원가, 고정비, 인건비, 변동비를 항목별로 관리하세요.',cats:['cogs','fixed','payroll','variable'],footerLabel:'총 비용 합계'},
-      taxcalc: {navIcon:'🧮',navLabel:'세금계산', title:'세금 자동 계산', desc:'',type:'calculator',cats:[]},
-      tax:     {navIcon:'🧾',navLabel:'세금충당', title:'세금 충당 입력', desc:'계산기에서 권장액을 확인 후 「자동 적용」 버튼으로 채울 수 있어요.',cats:['tax']},
+      revenue: {navIcon:'wallet-cards',navLabel:'매출',    title:'매출 입력', desc:'카드·현금·기타 매출을 항목별로 추가·수정·삭제할 수 있어요.',cats:['revenue']},
+      expense: {navIcon:'receipt',navLabel:'비용',    title:'비용 입력', desc:'매입원가, 고정비, 인건비, 변동비를 항목별로 관리하세요.',cats:['cogs','fixed','payroll','variable'],footerLabel:'총 비용 합계'},
+      taxcalc: {navIcon:'calculator',navLabel:'세금계산', title:'세금 자동 계산', desc:'',type:'calculator',cats:[]},
+      tax:     {navIcon:'file-text',navLabel:'세금충당', title:'세금 충당 입력', desc:'계산기에서 권장액을 확인 후 「자동 적용」 버튼으로 채울 수 있어요.',cats:['tax']},
     },
     cats:{
-      revenue: {label:'매출',       icon:'💳',bg:'#e8eef6',hex:'#1a3d6b',sub:'카드·현금·기타 매출'},
-      cogs:    {label:'매입·원가',  icon:'📦',bg:'#fdf3e3',hex:'#8a5c10',sub:'식자재·상품 매입, 포장 자재'},
-      fixed:   {label:'고정비',     icon:'🏢',bg:'#e8eef6',hex:'#1a3d6b',sub:'임대료, 관리비, 공과금, 통신비, 보험'},
-      payroll: {label:'인건비',     icon:'👥',bg:'#f6ebf0',hex:'#7a3050',sub:'직원 급여, 4대보험, 대표자 급여'},
-      variable:{label:'기타 변동비',icon:'🔄',bg:'#eeecf8',hex:'#4a3a80',sub:'카드·배달 수수료, 마케팅, 소모품'},
-      tax:     {label:'세금 충당',  icon:'🏛️',bg:'#faeae7',hex:'#a33020',sub:'부가세·종합소득세 충당'},
+      revenue: {label:'매출',       icon:'wallet-cards',bg:'#eaf1fb',hex:'#315f9c',sub:'카드·현금·기타 매출'},
+      cogs:    {label:'매입·원가',  icon:'package',bg:'#fff7e8',hex:'#b7791f',sub:'식자재·상품 매입, 포장 자재'},
+      fixed:   {label:'고정비',     icon:'building-2',bg:'#eaf1fb',hex:'#315f9c',sub:'임대료, 관리비, 공과금, 통신비, 보험'},
+      payroll: {label:'인건비',     icon:'users',bg:'#fbedf3',hex:'#a33a62',sub:'직원 급여, 4대보험, 대표자 급여'},
+      variable:{label:'기타 변동비',icon:'repeat-2',bg:'#efeffa',hex:'#5f55a4',sub:'카드·배달 수수료, 마케팅, 소모품'},
+      tax:     {label:'세금 충당',  icon:'landmark',bg:'#fff0ed',hex:'#c2413b',sub:'부가세·종합소득세 충당'},
     },
     metrics:[
-      {id:'in', label:'💰 총 매출', color:'var(--accent)',sub:'카드+현금+기타',     sumCats:['revenue']},
-      {id:'out',label:'💳 총 비용', color:'var(--red)',   sub:'매입+고정+인건+변동', sumCats:['cogs','fixed','payroll','variable']},
-      {id:'tax',label:'🧾 세금충당',color:'var(--amber)', sub:'부가세+소득세',       sumCats:['tax']},
-      {id:'net',label:'💵 순이익',  color:'dynamic',      sub:'매출−비용−세금',      base:'in',minus:['out','tax']},
+      {id:'in', label:'총 매출', color:'var(--accent)',sub:'카드+현금+기타',     sumCats:['revenue']},
+      {id:'out',label:'총 비용', color:'var(--red)',   sub:'매입+고정+인건+변동', sumCats:['cogs','fixed','payroll','variable']},
+      {id:'tax',label:'세금충당',color:'var(--amber)', sub:'부가세+소득세',       sumCats:['tax']},
+      {id:'net',label:'순이익',  color:'dynamic',      sub:'매출−비용−세금',      base:'in',minus:['out','tax']},
     ],
     sidebarRows:[
       {label:'총 매출',  ref:'in',  color:'var(--accent)'},
@@ -493,14 +1358,14 @@ const BOOKS={
       {label:'순이익',ref:'net',color:'#3a6098'},
     ],
     statRows:[
-      {ref:'in',      kind:'metric',label:'💰 매출',      cls:'pos'},
+      {ref:'in',      kind:'metric',label:'매출',         cls:'pos'},
       {ref:'cogs',    kind:'cat',   label:'　매입·원가',  cls:'muted'},
       {ref:'fixed',   kind:'cat',   label:'　고정비',     cls:'muted'},
       {ref:'payroll', kind:'cat',   label:'　인건비',     cls:'muted'},
       {ref:'variable',kind:'cat',   label:'　기타 변동',  cls:'muted'},
-      {ref:'out',     kind:'metric',label:'💳 비용 합계', cls:'neg'},
-      {ref:'tax',     kind:'metric',label:'🧾 세금 충당', cls:'neg'},
-      {ref:'net',     kind:'metric',label:'💵 순이익',    cls:'total'},
+      {ref:'out',     kind:'metric',label:'비용 합계',    cls:'neg'},
+      {ref:'tax',     kind:'metric',label:'세금 충당',    cls:'neg'},
+      {ref:'net',     kind:'metric',label:'순이익',       cls:'total'},
     ],
     defaults:()=>({
       revenue: [{n:'카드 매출',a:''},{n:'현금 매출',a:''},{n:'기타 수입',a:''}],
@@ -523,6 +1388,7 @@ let donutChart=null, yearBarChart=null, rateLineChart=null;
 let taxSettings={annualMethod:'projected',annualManual:'',deductPension:'',deductYellow:'',deductOther:'',creditOther:''};
 let _tcVatMonthly=0, _tcItMonthly=0;
 let _isRemoteUpdate=false; // Firebase에서 받은 업데이트인지 여부
+let _appStarted=false;
 const sidebarEl=document.getElementById('sidebar');
 const mainEl=document.getElementById('main');
 
@@ -536,6 +1402,9 @@ function escHtml(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').r
 function setText(id,v){const el=document.getElementById(id);if(el)el.textContent=v;}
 function loadTaxSettings(){const r=localStorage.getItem('taxSettings_company');if(r){try{taxSettings=JSON.parse(r);}catch(e){}}}
 function saveTaxSettings(){localStorage.setItem('taxSettings_company',JSON.stringify(taxSettings));}
+function iconHTML(name, cls='ui-icon'){return `<i data-lucide="${name}" class="${cls}" aria-hidden="true"></i>`;}
+function refreshIcons(){if(window.lucide)window.lucide.createIcons();}
+function metricIcon(id){return({in:'trending-up',out:'trending-down',reserve:'piggy-bank',tax:'receipt-text',net:'circle-dollar-sign'}[id]||'chart-line');}
 
 function mergeDefaults(raw){
   const d=book.defaults();
@@ -617,11 +1486,11 @@ async function getAccumVat(periodMonths){
    ════════════════════════════════════════ */
 function buildTaxCalcHTML(){
   return `<section id="panel-taxcalc" class="panel">
-  <div class="section-heading">🧮 세금 자동 계산</div>
+  <div class="section-heading">세금 자동 계산</div>
   <div class="section-desc">한국 세법(2024년 귀속 기준) · 개인사업자 · 일반과세자 VAT + 종합소득세 + 지방소득세</div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-icon" style="background:#e8eef6;">📊</div>
+      <div class="card-header-icon" style="background:#eaf1fb;">${iconHTML('chart-no-axes-column-increasing')}</div>
       <div class="card-header-text"><div class="card-header-title">연간 소득 추정</div><div class="card-header-sub">종합소득세 계산의 기준</div></div>
       <div class="card-header-total" id="tc-method-label" style="color:var(--blue);font-size:12px;">이번달×12</div>
     </div>
@@ -645,7 +1514,7 @@ function buildTaxCalcHTML(){
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-icon" style="background:#fdf3e3;">🧾</div>
+      <div class="card-header-icon" style="background:#fff7e8;">${iconHTML('receipt-text')}</div>
       <div class="card-header-text"><div class="card-header-title">부가세 (VAT)</div><div class="card-header-sub">일반과세자 · 매출세액 − 매입세액 공제</div></div>
       <div class="card-header-total" id="tc-vat-hdr" style="color:var(--amber);">0원/월</div>
     </div>
@@ -668,7 +1537,7 @@ function buildTaxCalcHTML(){
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-icon" style="background:#eeecf8;">⬇️</div>
+      <div class="card-header-icon" style="background:#efeffa;">${iconHTML('badge-minus')}</div>
       <div class="card-header-text"><div class="card-header-title">종합소득공제</div><div class="card-header-sub">과세표준을 낮추는 공제 항목</div></div>
     </div>
     <div class="card-body">
@@ -681,7 +1550,7 @@ function buildTaxCalcHTML(){
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-icon" style="background:#e8f0ed;">💳</div>
+      <div class="card-header-icon" style="background:#e6f4f1;">${iconHTML('credit-card')}</div>
       <div class="card-header-text"><div class="card-header-title">세액공제</div><div class="card-header-sub">산출세액에서 직접 차감</div></div>
     </div>
     <div class="card-body">
@@ -692,7 +1561,7 @@ function buildTaxCalcHTML(){
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-icon" style="background:#faeae7;">🏛️</div>
+      <div class="card-header-icon" style="background:#fff0ed;">${iconHTML('landmark')}</div>
       <div class="card-header-text"><div class="card-header-title">종합소득세 계산 결과</div><div class="card-header-sub">2024년 귀속 세율 · 사업소득 단일</div></div>
       <div class="card-header-total" id="tc-it-hdr" style="color:var(--red);">0원</div>
     </div>
@@ -715,11 +1584,11 @@ function buildTaxCalcHTML(){
       <div><div class="subtotal-label">합계 세액 (연간)</div><div style="font-size:10px;color:var(--text3);margin-top:2px;">종합소득세 + 지방소득세</div></div>
       <span class="subtotal-val" id="tc-r-total" style="color:var(--red);font-size:18px;">0원</span>
     </div>
-    <div class="tc-notice">📌 납부 일정 · 5월 종합소득세 확정신고 / 11월 중간예납 (전년 결정세액의 50%)</div>
+    <div class="tc-notice">납부 일정 · 5월 종합소득세 확정신고 / 11월 중간예납 (전년 결정세액의 50%)</div>
   </div>
   <div class="card">
     <div class="card-header">
-      <div class="card-header-icon" style="background:#e8f0ed;">💡</div>
+      <div class="card-header-icon" style="background:#e6f4f1;">${iconHTML('badge-percent')}</div>
       <div class="card-header-text"><div class="card-header-title">이번달 세금 충당 권장액</div><div class="card-header-sub">매달 별도 통장에 적립하면 납부 부담이 줄어요</div></div>
     </div>
     <div class="card-body">
@@ -733,8 +1602,8 @@ function buildTaxCalcHTML(){
     </div>
   </div>
   <div class="action-bar">
-    <button class="btn btn-primary" onclick="applyTaxToProvision()">🧾 세금 충당 탭에 자동 적용 →</button>
-    <button class="btn" onclick="gotoPanel('tax')">세금 충당 탭으로 →</button>
+    <button class="btn btn-primary" onclick="applyTaxToProvision()">${iconHTML('file-check-2')}세금 충당 탭에 자동 적용</button>
+    <button class="btn" onclick="gotoPanel('tax')">${iconHTML('arrow-right')}세금 충당 탭으로</button>
   </div>
 </section>`;
 }
@@ -886,18 +1755,18 @@ function applyTaxToProvision(){
    ════════════════════════════════════════ */
 function metricCardsHTML(prefix){
   return book.metrics.map(mt=>`<div class="metric-card">
-    <div class="metric-label">${mt.label}</div>
+    <div class="metric-top"><div class="metric-label">${mt.label}</div><div class="metric-icon">${iconHTML(metricIcon(mt.id))}</div></div>
     <div class="metric-val" id="${prefix}-${mt.id}" style="color:${mt.color==='dynamic'?'var(--text)':mt.color}">0원</div>
     <div class="metric-sub" id="${prefix}sub-${mt.id}">${mt.sub}</div></div>`).join('');
 }
 function catCardHTML(c){
   const cat=book.cats[c];
   return`<div class="card">
-    <div class="card-header"><div class="card-header-icon" style="background:${cat.bg};">${cat.icon}</div>
+    <div class="card-header"><div class="card-header-icon" style="background:${cat.bg};color:${cat.hex};">${iconHTML(cat.icon)}</div>
       <div class="card-header-text"><div class="card-header-title">${cat.label}</div>${cat.sub?`<div class="card-header-sub">${cat.sub}</div>`:''}</div>
       <div class="card-header-total" id="h-${c}" style="color:${cat.hex}">0원</div></div>
     <div class="card-body" id="list-${c}"></div>
-    <div class="add-row"><button class="add-btn" onclick="addItem('${c}')">＋ 항목 추가</button></div>
+    <div class="add-row"><button class="add-btn" onclick="addItem('${c}')">${iconHTML('plus')}항목 추가</button></div>
     <div class="subtotal-row"><span class="subtotal-label">${cat.label} 소계</span><span class="subtotal-val" id="sub-${c}" style="color:${cat.hex}">0원</span></div>
   </div>`;
 }
@@ -913,12 +1782,12 @@ function buildUI(){
     </div>`;
   const navItems=book.panelOrder.map(k=>{
     const p=book.panels[k];
-    const badge=p.type==='calculator'?'🧮':`<span id="nb-${k}">0</span>`;
-    return`<button class="nav-item" data-panel="${k}" onclick="switchPanel('${k}',this)"><span class="nav-icon">${p.navIcon}</span><span>${p.navLabel}</span><span class="nav-badge">${badge}</span></button>`;
+    const badge=p.type==='calculator'?'계산':`<span id="nb-${k}">0</span>`;
+    return`<button class="nav-item" data-panel="${k}" onclick="switchPanel('${k}',this)">${iconHTML(p.navIcon,'nav-icon')}<span>${p.navLabel}</span><span class="nav-badge">${badge}</span></button>`;
   }).join('');
   document.getElementById('navCard').innerHTML=navItems+
-    `<button class="nav-item" data-panel="summary" onclick="switchPanel('summary',this)"><span class="nav-icon">📊</span><span>월 요약</span><span class="nav-badge">→</span></button>
-     <button class="nav-item" data-panel="stats" onclick="switchPanel('stats',this)"><span class="nav-icon">📈</span><span>연간 통계</span><span class="nav-badge">→</span></button>`;
+    `<button class="nav-item" data-panel="summary" onclick="switchPanel('summary',this)">${iconHTML('chart-pie','nav-icon')}<span>월 요약</span><span class="nav-badge">보기</span></button>
+     <button class="nav-item" data-panel="stats" onclick="switchPanel('stats',this)">${iconHTML('chart-column-increasing','nav-icon')}<span>연간 통계</span><span class="nav-badge">보기</span></button>`;
   let html='';
   book.panelOrder.forEach((k,i)=>{
     const p=book.panels[k];
@@ -935,7 +1804,7 @@ function buildUI(){
         <div class="section-heading">${p.title}</div>
         <div class="section-desc">${p.desc}</div>
         ${cards}${footer}
-        <div class="action-bar"><button class="btn" onclick="gotoPanel('${next}')">다음 →</button></div>
+        <div class="action-bar"><button class="btn" onclick="gotoPanel('${next}')">${iconHTML('arrow-right')}다음</button></div>
       </section>`;
     }
   });
@@ -958,26 +1827,27 @@ function buildUI(){
     </div>
     <div class="breakdown-card" id="breakdown-list"></div>
     <div class="action-bar">
-      <button class="btn" onclick="exportCSV()">📥 이 달 CSV</button>
-      <button class="btn" onclick="document.getElementById('resetModal').classList.add('open')">🗑 이 달 초기화</button>
+      <button class="btn" onclick="exportCSV()">${iconHTML('download')}이 달 CSV</button>
+      <button class="btn" onclick="document.getElementById('resetModal').classList.add('open')">${iconHTML('rotate-ccw')}이 달 초기화</button>
     </div>
   </section>`;
   html+=`<section id="panel-stats" class="panel">
     <div class="section-heading">연간 통계</div>
     <div class="section-desc">선택 연도의 모든 달을 한 번에 비교하세요.</div>
     <div class="year-nav">
-      <button class="month-btn" onclick="changeStatYear(-1)">◀</button>
+      <button class="month-btn" onclick="changeStatYear(-1)" title="이전 연도">${iconHTML('chevron-left')}</button>
       <span class="year-text" id="statYearLabel"></span>
-      <button class="month-btn" onclick="changeStatYear(1)">▶</button>
+      <button class="month-btn" onclick="changeStatYear(1)" title="다음 연도">${iconHTML('chevron-right')}</button>
     </div>
     <div class="metrics-grid">${metricCardsHTML('y')}</div>
     <div class="chart-card"><div class="chart-title">월별 추이</div><div style="position:relative;width:100%;height:280px;"><canvas id="yearBar"></canvas></div></div>
     <div class="chart-card"><div class="chart-title">월별 ${book.rate.yLabel} 추이</div><div style="position:relative;width:100%;height:220px;"><canvas id="rateLine"></canvas></div></div>
     <div class="chart-title" style="margin:24px 0 12px;">월별 상세 내역표</div>
     <div class="stat-table-wrap"><table class="stat-table" id="statTable"></table></div>
-    <div class="action-bar"><button class="btn" onclick="exportYearCSV()">📥 연간 CSV</button></div>
+    <div class="action-bar"><button class="btn" onclick="exportYearCSV()">${iconHTML('download')}연간 CSV</button></div>
   </section>`;
   mainEl.innerHTML=html;
+  refreshIcons();
 }
 
 /* ════════════════════════════════════════
@@ -990,12 +1860,13 @@ function renderList(cat){
     row.innerHTML=`<input class="item-name" type="text" value="${escHtml(it.n)}" placeholder="항목 이름" oninput="editName('${cat}',${idx},this.value)"/>
       <input class="item-amount" type="number" min="0" value="${it.a}" placeholder="0" id="amt-${cat}-${idx}" oninput="editAmount('${cat}',${idx},this.value)"/>
       <span class="item-unit">원</span>
-      <span class="item-add-icon">＋</span>
+      ${iconHTML('plus','item-add-icon')}
       <input class="item-add" type="number" placeholder="0" id="add-${cat}-${idx}" title="입력 후 적용: 기존 금액에 더하기" onkeydown="if(event.key==='Enter'){addToAmount('${cat}',${idx});}"/>
-      <button class="item-add-btn" onclick="addToAmount('${cat}',${idx})" title="더하기">+적용</button>
-      <button class="item-del" onclick="delItem('${cat}',${idx})" title="삭제">✕</button>`;
+      <button class="item-add-btn" onclick="addToAmount('${cat}',${idx})" title="더하기">${iconHTML('check')}적용</button>
+      <button class="item-del" onclick="delItem('${cat}',${idx})" title="삭제">${iconHTML('x')}</button>`;
     wrap.appendChild(row);
   });
+  refreshIcons();
 }
 function editName(cat,idx,val){data[cat][idx].n=val;save();}
 function editAmount(cat,idx,val){data[cat][idx].a=val;save();recalc();}
@@ -1012,7 +1883,7 @@ function addToAmount(cat,idx){
   if(amtEl)amtEl.value=newVal;
   inputEl.value='';
   recalc();
-  toast(`+${fmt(add)} 적용됨 → ${fmt(newVal)}`);
+  toast(`+${fmt(add)} 적용됨 · 현재 ${fmt(newVal)}`);
 }
 function addItem(cat){data[cat].push({n:'',a:''});save();renderList(cat);recalc();
   const inputs=document.getElementById('list-'+cat).querySelectorAll('.item-name');if(inputs.length)inputs[inputs.length-1].focus();}
@@ -1040,8 +1911,8 @@ function recalc(){
   if(bar){bar.style.width=Math.max(0,Math.min(rate,100))+'%';
     bar.style.background=rate<0?'var(--red)':rate>=book.rate.goal?'var(--accent)':rate>=book.rate.goal/2?'var(--blue)':'var(--amber)';}
   const gl=document.getElementById('rate-goal-label');
-  if(gl){if(rate<0){gl.textContent='⚠️ 손실';gl.style.color='var(--red)';}
-    else if(rate>=book.rate.goal){gl.textContent='🎉 목표 달성!';gl.style.color='var(--accent)';}
+  if(gl){if(rate<0){gl.textContent='손실 구간';gl.style.color='var(--red)';}
+    else if(rate>=book.rate.goal){gl.textContent='목표 달성';gl.style.color='var(--accent)';}
     else{gl.textContent='목표 '+book.rate.goal+'%';gl.style.color='var(--text3)';}}
   setText('donut-pct',m.in>0?Math.round(m.out/m.in*100)+'%':'—');
   const bd=document.getElementById('breakdown-list');
@@ -1209,6 +2080,11 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
    초기화
    ════════════════════════════════════════ */
 function startApp(){
+  if(_appStarted){
+    if(window.SYNC) subscribeCurrentMonth();
+    return;
+  }
+  _appStarted=true;
   document.getElementById('monthLabel').textContent=year+'년 '+MONTHS[month];
   loadTaxSettings();
   buildUI();
@@ -1222,6 +2098,16 @@ function startApp(){
 
 if(window.firebaseReady) startApp();
 else window._pendingInit = startApp;
+
+setTimeout(()=>{
+  if(window.firebaseReady)return;
+  const dot=document.getElementById('sync-dot');
+  const lbl=document.getElementById('sync-label');
+  if(dot)dot.className='sync-dot offline';
+  if(lbl)lbl.textContent='로컬 모드';
+  window.firebaseReady=true;
+  startApp();
+},4000);
 </script>
 </body>
 </html>
