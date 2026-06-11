@@ -28,7 +28,7 @@ header{background:var(--accent);color:#fff;padding:0 24px;height:60px;display:fl
 .header-left{display:flex;align-items:center;gap:18px;}
 .header-title{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.01em;}
 .mode-toggle{display:flex;background:rgba(255,255,255,.14);border-radius:8px;padding:3px;}
-.mode-btn{border:none;background:transparent;color:rgba(255,255,255,.7);font-family:var(--sans);font-size:13px;font-weight:500;padding:5px 16px;border-radius:6px;cursor:pointer;transition:all .15s;}
+.mode-btn{border:none;background:transparent;color:rgba(255,255,255,.7);font-family:var(--sans);font-size:13px;font-weight:500;padding:5px 16px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .mode-btn.active{background:#fff;color:var(--accent);}
 .header-right{display:flex;align-items:center;gap:14px;}
 .header-month{display:flex;align-items:center;gap:10px;}
@@ -87,6 +87,9 @@ header{background:var(--accent);color:#fff;padding:0 24px;height:60px;display:fl
 .item-add::placeholder{color:var(--text3);}
 .item-add:focus{border-color:var(--accent2);background:var(--surface);box-shadow:0 0 0 3px rgba(58,96,152,.12);}
 .item-add-icon{font-size:13px;color:var(--text3);flex-shrink:0;}
+.item-add-btn{height:34px;padding:0 10px;border:1px solid var(--accent2);background:var(--accent2);color:#fff;border-radius:var(--radius-sm);font-size:12px;font-family:var(--sans);font-weight:500;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;}
+.item-add-btn:hover{background:var(--accent);border-color:var(--accent);}
+.item-add-btn:active{transform:scale(.97);}
 .item-unit{font-size:12px;color:var(--text3);width:14px;}
 .item-del{width:26px;height:26px;border:none;background:transparent;color:var(--text3);cursor:pointer;border-radius:6px;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
 .item-del:hover{background:var(--red-light);color:var(--red);}
@@ -211,7 +214,16 @@ table.stat-table tr:hover td:first-child{background:var(--accent-light);}
   .item-amount{order:2;flex:1 1 auto;width:auto;min-width:0;}
   .item-unit{order:3;}
   .item-add{order:4;flex:1 1 auto;width:auto;min-width:0;}
-  .item-del{order:5;}
+  .item-add-btn{order:5;}
+  .item-del{order:6;}
+  header{padding:0 10px;gap:6px;}
+  .header-left{gap:8px;}
+  .mode-toggle{flex-shrink:0;}
+  .mode-btn{padding:5px 8px;font-size:12px;}
+  .header-right{gap:6px;}
+  .header-month{gap:4px;}
+  .month-text{min-width:0;font-size:13px;white-space:nowrap;}
+  .month-btn{width:26px;height:26px;font-size:14px;flex-shrink:0;}
 }
 </style>
 </head>
@@ -977,14 +989,17 @@ function renderList(cat){
       <input class="item-amount" type="number" min="0" value="${it.a}" placeholder="0" id="amt-${cat}-${idx}" oninput="editAmount('${cat}',${idx},this.value)"/>
       <span class="item-unit">원</span>
       <span class="item-add-icon">＋</span>
-      <input class="item-add" type="number" placeholder="0" title="입력 후 Enter: 기존 금액에 더하기" onkeydown="if(event.key==='Enter'){addToAmount('${cat}',${idx},this);}"/>
+      <input class="item-add" type="number" placeholder="0" id="add-${cat}-${idx}" title="입력 후 적용: 기존 금액에 더하기" onkeydown="if(event.key==='Enter'){addToAmount('${cat}',${idx});}"/>
+      <button class="item-add-btn" onclick="addToAmount('${cat}',${idx})" title="더하기">+적용</button>
       <button class="item-del" onclick="delItem('${cat}',${idx})" title="삭제">✕</button>`;
     wrap.appendChild(row);
   });
 }
 function editName(cat,idx,val){data[cat][idx].n=val;save();}
 function editAmount(cat,idx,val){data[cat][idx].a=val;save();recalc();}
-function addToAmount(cat,idx,inputEl){
+function addToAmount(cat,idx){
+  const inputEl=document.getElementById(`add-${cat}-${idx}`);
+  if(!inputEl)return;
   const add=parseFloat(inputEl.value);
   if(!add){inputEl.value='';return;}
   const cur=parseFloat(data[cat][idx].a)||0;
