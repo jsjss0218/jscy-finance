@@ -269,6 +269,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+try {
+
 /* ════════════════════════════════════════
    Firebase 동기화 레이어
    ════════════════════════════════════════ */
@@ -337,6 +339,18 @@ window.fbGetOnce = (bookId, y, m) => SYNC.getOnce(bookId, y, m);
 // Firebase 준비 완료 → 앱 시작
 window.firebaseReady = true;
 if(window._pendingInit) window._pendingInit();
+
+} catch(err) {
+  console.error('Firebase 초기화 오류:', err);
+  const lbl = document.getElementById('sync-label');
+  const dot = document.getElementById('sync-dot');
+  if(dot) dot.className = 'sync-dot offline';
+  if(lbl) lbl.textContent = 'Firebase 오류 (로컬 모드)';
+  // Firebase 실패해도 앱은 시작되도록 함 (로컬 전용 모드)
+  window.firebaseReady = true;
+  if(window._pendingInit) window._pendingInit();
+}
+
 </script>
 
 <script>
@@ -1011,4 +1025,159 @@ function renderDonut(cs){
   const colors=book.donutCats.map(c=>book.cats[c].hex);
   const total=vals.reduce((a,b)=>a+b,0);
   const legend=document.getElementById('donut-legend');legend.innerHTML='';
-  labels.forEach((lbl,i)=>{const p=total>0?Math.round(vals[i]/total*100):0
+  labels.forEach((lbl,i)=>{const p=total>0?Math.round(vals[i]/total*100):0;
+    legend.innerHTML+=`<div class="legend-row"><span class="legend-dot" style="background:${colors[i]}"></span><span class="legend-name">${lbl}</span><span class="legend-pct">${p}%</span><span class="legend-amt">${fmt(vals[i])}</span></div>`;});
+  if(donutChart){donutChart.destroy();donutChart=null;}
+  donutChart=new Chart(document.getElementById('donut').getContext('2d'),{type:'doughnut',
+    data:{labels,datasets:[{data:total>0?vals:[1],backgroundColor:total>0?colors:['#e4e0d6'],borderWidth:3,borderColor:'#fff',hoverOffset:6}]},
+    options:{responsive:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{enabled:total>0,callbacks:{label:(c)=>' '+c.label+': '+fmt(c.raw)}}},animation:{duration:500}}});
+}
+
+/* ════════════════════════════════════════
+   연간 통계 (Firebase 비동기)
+   ════════════════════════════════════════ */
+function changeStatYear(d){statYear+=d;renderStats();}
+async function gatherYear(y){
+  const arr=[];
+  for(let mo=0;mo<12;mo++){
+    const d=await getMonthData(y,mo);
+    arr.push(d?aggregate(d):null);
+  }
+  return arr;
+}
+async function renderStats(){
+  document.getElementById('statYearLabel').textContent=statYear+'년';
+  clearStatCache();
+  const ms=await gatherYear(statYear);
+  const tot={cs:{},m:{}}; Object.keys(book.cats).forEach(c=>tot.cs[c]=0);book.metrics.forEach(mt=>tot.m[mt.id]=0);
+  let active=0;
+  ms.forEach(a=>{if(a){Object.keys(book.cats).forEach(c=>tot.cs[c]+=a.cs[c]);book.metrics.forEach(mt=>tot.m[mt.id]+=a.m[mt.id]);if(a.m.in||a.m.out)active++;}});
+  const avgDiv=active||1;
+  book.metrics.forEach(mt=>{
+    const el=document.getElementById('y-'+mt.id);
+    if(el){el.textContent=fmt(tot.m[mt.id]);if(mt.color==='dynamic')el.style.color=tot.m[mt.id]>=0?'var(--accent)':'var(--red)';}
+    const sub=document.getElementById('ysub-'+mt.id);
+    if(sub){if(mt.id==='net'){const r=tot.m[book.rate.den]>0?Math.round(tot.m[book.rate.num]/tot.m[book.rate.den]*100):0;sub.textContent=book.rate.yLabel+' '+r+'%';}
+      else sub.textContent='월평균 '+fmt(tot.m[mt.id]/avgDiv);}
+  });
+  const labels=MONTHS;
+  const datasets=book.barSeries.map(s=>({label:s.label,data:ms.map(a=>a?Math.round(a.m[s.ref]):0),backgroundColor:s.color}));
+  if(yearBarChart){yearBarChart.destroy();yearBarChart=null;}
+  yearBarChart=new Chart(document.getElementById('yearBar').getContext('2d'),{type:'bar',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{ticks:{font:{size:10},callback:(v)=>v>=10000?(v/10000)+'만':v},grid:{color:'#eee'}}},
+      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,boxHeight:12,padding:14}},tooltip:{callbacks:{label:(c)=>' '+c.dataset.label+': '+fmt(c.raw)}}}}});
+  const rateData=ms.map(a=>a&&a.m[book.rate.den]>0?Math.round(a.m[book.rate.num]/a.m[book.rate.den]*100):null);
+  if(rateLineChart){rateLineChart.destroy();rateLineChart=null;}
+  rateLineChart=new Chart(document.getElementById('rateLine').getContext('2d'),{type:'line',
+    data:{labels,datasets:[
+      {label:book.rate.yLabel+'(%)',data:rateData,borderColor:'#2c4a3e',backgroundColor:'rgba(74,124,107,.12)',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:'#2c4a3e',spanGaps:true},
+      {label:'목표 '+book.rate.goal+'%',data:labels.map(()=>book.rate.goal),borderColor:'#c99a3a',borderDash:[6,4],pointRadius:0,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      scales:{x:{ticks:{font:{size:11}},grid:{display:false}},y:{suggestedMin:0,suggestedMax:50,ticks:{font:{size:10},callback:(v)=>v+'%'},grid:{color:'#eee'}}},
+      plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:12,boxHeight:12,padding:14}},tooltip:{callbacks:{label:(c)=>' '+c.dataset.label+': '+(c.raw==null?'-':c.raw+'%')}}}}});
+  renderStatTable(ms,tot);
+}
+function renderStatTable(ms,tot){
+  const t=document.getElementById('statTable');
+  let head='<thead><tr><th>항목</th>';for(let mo=0;mo<12;mo++)head+=`<th>${MONTHS[mo]}</th>`;head+='<th class="stat-yearcol">연간 합계</th></tr></thead>';
+  const clsMap={pos:'stat-cell-pos',neg:'stat-cell-neg',muted:'stat-cell-muted','':''};
+  let body='<tbody>';
+  book.statRows.forEach(r=>{
+    const isTotal=r.cls==='total';
+    body+=`<tr class="${isTotal?'stat-row-total':''}"><td class="stat-row-label">${r.label}</td>`;
+    for(let mo=0;mo<12;mo++){
+      let val=0,has=false;
+      if(ms[mo]){has=ms[mo].m.in||ms[mo].m.out;val=r.kind==='cat'?ms[mo].cs[r.ref]:ms[mo].m[r.ref];}
+      const cls=(r.ref==='net'||isTotal)?(val>=0?'stat-cell-pos':'stat-cell-neg'):(val?clsMap[r.cls]:'stat-cell-muted');
+      body+=`<td class="${cls}">${(has||val)?fmt(val):'-'}</td>`;
+    }
+    const yt=r.kind==='cat'?tot.cs[r.ref]:tot.m[r.ref];
+    body+=`<td class="stat-yearcol">${(yt||r.ref==='net')?fmt(yt):'-'}</td></tr>`;
+  });
+  body+='</tbody>';t.innerHTML=head+body;
+}
+
+/* ════════════════════════════════════════
+   CSV
+   ════════════════════════════════════════ */
+function exportCSV(){
+  const rows=[['카테고리','항목','금액']];
+  Object.keys(book.cats).forEach(c=>(data[c]||[]).forEach(it=>rows.push([book.cats[c].label,it.n,parseFloat(it.a)||0])));
+  downloadCSV(rows,`${bookId==='family'?'가정':'회사'}_${year}년_${MONTHS[month]}.csv`);
+}
+async function exportYearCSV(){
+  const ms=await gatherYear(statYear);
+  const rows=[['항목',...MONTHS,'연간합계']];
+  book.statRows.forEach(r=>{const row=[r.label.replace(/^[\s　]+/,'')];let t=0;
+    for(let mo=0;mo<12;mo++){let v=0;if(ms[mo])v=r.kind==='cat'?ms[mo].cs[r.ref]:ms[mo].m[r.ref];row.push(Math.round(v));t+=v;}
+    row.push(Math.round(t));rows.push(row);});
+  downloadCSV(rows,`${bookId==='family'?'가정':'회사'}_${statYear}년_연간통계.csv`);
+}
+function downloadCSV(rows,filename){
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
+  toast('CSV 파일이 다운로드되었습니다');
+}
+
+/* ════════════════════════════════════════
+   네비/전환
+   ════════════════════════════════════════ */
+function switchPanel(name,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('panel-'+name)?.classList.add('active');
+  if(el)el.classList.add('active');
+  else{const navEl=document.querySelector(`.nav-item[data-panel="${name}"]`);if(navEl)navEl.classList.add('active');}
+  if(name==='summary')recalc();
+  if(name==='stats'){statYear=year;renderStats();}
+  if(name==='taxcalc')updateTaxCalc();
+}
+function gotoPanel(name){switchPanel(name);}
+function destroyCharts(){[donutChart,yearBarChart,rateLineChart].forEach(c=>{if(c)c.destroy();});donutChart=yearBarChart=rateLineChart=null;}
+function switchBook(name){
+  if(name===bookId)return;
+  destroyCharts();clearStatCache();
+  bookId=name;book=BOOKS[name];
+  document.body.classList.toggle('corp',name==='company');
+  document.getElementById('mode-family').classList.toggle('active',name==='family');
+  document.getElementById('mode-company').classList.toggle('active',name==='company');
+  buildUI();
+  subscribeCurrentMonth();
+  switchPanel(book.panelOrder[0],document.querySelector(`.nav-item[data-panel="${book.panelOrder[0]}"]`));
+}
+function changeMonth(d){
+  month+=d;if(month<0){month=11;year--;}if(month>11){month=0;year++;}
+  document.getElementById('monthLabel').textContent=year+'년 '+MONTHS[month];
+  clearStatCache();
+  subscribeCurrentMonth();
+  if(document.getElementById('panel-stats')?.classList.contains('active')){statYear=year;renderStats();}
+}
+function resetMonth(){
+  data=book.defaults();save();
+  document.getElementById('resetModal').classList.remove('open');
+  renderAllLists();recalc();toast('초기화되었습니다');
+}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ════════════════════════════════════════
+   초기화
+   ════════════════════════════════════════ */
+function startApp(){
+  document.getElementById('monthLabel').textContent=year+'년 '+MONTHS[month];
+  loadTaxSettings();
+  buildUI();
+  subscribeCurrentMonth();
+  switchPanel(book.panelOrder[0],document.querySelector(`.nav-item[data-panel="${book.panelOrder[0]}"]`));
+  setTimeout(()=>{
+    const ov=document.getElementById('loading-overlay');
+    if(ov){ov.classList.add('hide');setTimeout(()=>ov.remove(),400);}
+  },800);
+}
+
+if(window.firebaseReady) startApp();
+else window._pendingInit = startApp;
+</script>
+</body>
+</html>
