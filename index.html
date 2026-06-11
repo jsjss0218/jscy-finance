@@ -193,6 +193,7 @@ table.stat-table tr:hover td:first-child{background:var(--accent-light);}
 .loading-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:18px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media(max-width:768px){
+  .item-name,.item-amount,.item-add,.tc-input{font-size:16px;}
   .app{grid-template-columns:1fr;}
   .header-title{display:none;}
   .sidebar{position:static;}
@@ -210,7 +211,7 @@ table.stat-table tr:hover td:first-child{background:var(--accent-light);}
   .tc-input{width:110px;}
   .sync-status span{display:none;}
   .item-row{flex-wrap:wrap;padding:10px 14px;gap:6px 8px;}
-  .item-name{flex:1 1 100%;order:1;font-size:14px;}
+  .item-name{flex:1 1 100%;order:1;font-size:16px;}
   .item-amount{order:2;flex:1 1 auto;width:auto;min-width:0;}
   .item-unit{order:3;}
   .item-add{order:4;flex:1 1 auto;width:auto;min-width:0;}
