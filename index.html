@@ -6,37 +6,38 @@
 <title>JSCY 통합 재무관리</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root{
-  --bg:#f7f5f0;--surface:#fff;--surface2:#f2efe8;--border:#e4e0d6;--border2:#ccc8be;
-  --text:#1a1814;--text2:#6b6660;--text3:#9e9890;
-  --accent:#2c4a3e;--accent2:#4a7c6b;--accent-light:#e8f0ed;
-  --red:#a33020;--red-light:#faeae7;--amber:#8a5c10;--amber-light:#fdf3e3;
-  --blue:#1a3d6b;--blue-light:#e8eef6;--rose:#7a3050;--rose-light:#f6ebf0;
-  --violet:#4a3a80;--violet-light:#eeecf8;
-  --serif:'Noto Serif KR',serif;--sans:'Noto Sans KR',sans-serif;
-  --radius:10px;--radius-sm:6px;
-  --shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shadow-lg:0 4px 12px rgba(0,0,0,.08),0 12px 40px rgba(0,0,0,.06);
+  --bg:#fbfbfa;--surface:#fff;--surface2:#f7f7f5;--border:#e9e9e7;--border2:#dcdcd9;
+  --text:#37352f;--text2:#787774;--text3:#9b9a97;
+  --accent:#2383e2;--accent2:#0b6bcb;--accent-light:#e7f3fe;
+  --red:#e03e3e;--red-light:#fbe4e4;--amber:#d9730d;--amber-light:#fbecdd;
+  --blue:#2383e2;--blue-light:#e7f3fe;--rose:#ad1a72;--rose-light:#f4dfeb;
+  --violet:#9065b0;--violet-light:#f0e5fa;
+  --serif:'Pretendard','Inter',-apple-system,sans-serif;--sans:'Pretendard','Inter',-apple-system,sans-serif;
+  --radius:8px;--radius-sm:6px;
+  --shadow:0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.08);
 }
-body.corp{--accent:#1a3d6b;--accent2:#3a6098;--accent-light:#e8eef6;}
+body.corp{--accent:#6940a5;--accent2:#553c9a;--accent-light:#f0e5fa;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
-header{background:var(--accent);color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15);transition:background .25s;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+header{background:var(--surface);color:var(--text);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);box-shadow:none;transition:background .25s;}
 .header-left{display:flex;align-items:center;gap:18px;}
-.header-title{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.01em;}
-.mode-toggle{display:flex;background:rgba(255,255,255,.14);border-radius:8px;padding:3px;}
-.mode-btn{border:none;background:transparent;color:rgba(255,255,255,.7);font-family:var(--sans);font-size:13px;font-weight:500;padding:5px 16px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.mode-btn.active{background:#fff;color:var(--accent);}
+.header-title{font-family:var(--serif);font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--text);}
+.mode-toggle{display:flex;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);}
+.mode-btn{border:none;background:transparent;color:var(--text3);font-family:var(--sans);font-size:13px;font-weight:500;padding:5px 16px;border-radius:6px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.mode-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--shadow);}
 .header-right{display:flex;align-items:center;gap:14px;}
 .header-month{display:flex;align-items:center;gap:10px;}
-.month-btn{width:30px;height:30px;background:rgba(255,255,255,.15);border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
-.month-btn:hover{background:rgba(255,255,255,.25);}
+.month-btn{width:30px;height:30px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.month-btn:hover{background:var(--border);}
 .month-text{font-size:15px;font-weight:500;min-width:90px;text-align:center;}
 /* 동기화 상태 표시 */
-.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.7);padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.1);}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);padding:4px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:#aaa;flex-shrink:0;transition:background .3s;}
 .sync-dot.ok{background:#4caf82;}
 .sync-dot.saving{background:#f9a825;animation:pulse .8s infinite;}
